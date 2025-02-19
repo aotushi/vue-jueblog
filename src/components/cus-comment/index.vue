@@ -64,7 +64,7 @@ import type { IAnyObj } from '@/request/http'
 
 const act_id = ref('')
 const props = defineProps<{
-  comments?: CommentResultType
+  comments?: CommentResultType[]
   smallSize?: boolean
 }>()
 const emit = defineEmits<{

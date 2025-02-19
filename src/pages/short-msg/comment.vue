@@ -79,7 +79,8 @@ const getComments = () => {
     comments.value = res as unknown as CommentResultType[]
   })
 }
-const action_load = computed(() => store.action_load)
+
+const action_load = computed(() => store.comment_info.action_load)
 watch(action_load, () => {
   getComments()
 })

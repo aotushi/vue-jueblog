@@ -29,7 +29,7 @@
     </div>
     <div class="title">全部评论 {{ props.count }}</div>
     <cus-comments
-      :comments="comments as unknown as CommentResultType"
+      :comments="comments as unknown as CommentResultType[]"
       @on-reply="toCreate"
     />
   </div>

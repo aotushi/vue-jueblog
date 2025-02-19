@@ -24,14 +24,14 @@ const useShortMsgStore = defineStore('short-msg', {
 
     // 沸点列表
     async getShortmsgs(
-      params: Record<string, string> = {},
+      params: Record<string, unknown> = {},
       fun?: (data: unknown) => void,
     ) {
       try {
         if (params.group == 'all') {
           params.group = ''
         }
-        const page = +params.page || 1
+        const page = +(params.page as number) || 1
         if (page == 1) {
           this.loading = true
         }
