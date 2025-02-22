@@ -79,12 +79,15 @@ export const useMessageStore = defineStore(
 
     // 点赞
     async function getPraises(
-      fun: (res: { meta: IAnyObj; data: PraiseType[] }) => void,
+      fun: (res: { meta: IAnyObj; data: PraiseType[] } | null) => void,
       page = 1,
     ) {
       try {
         const params = { page }
-        const res = await request.get<PraiseType[]>('/api2/praises/mylist', {
+        const res = await request.get<{
+          meta: { page: number; per_page: number; total: number }
+          data: PraiseType[]
+        }>('/api2/praises/mylist', {
           ...params,
         })
         const [err, data] = res

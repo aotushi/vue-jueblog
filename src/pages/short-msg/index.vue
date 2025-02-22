@@ -14,7 +14,7 @@ const store = useShortMsgStore()
 const ustore = useUserStore()
 const router = useRouter()
 const route = useRoute()
-const filter = ref<IAnyObj>({})
+const filter = ref<Record<string, unknown>>({})
 const loading = ref(false)
 const focus = ref(false)
 const form = ref({
@@ -105,7 +105,7 @@ const removeImg = (file: { uid: string }) => {
 // 上传成功
 const uploadSuccess = (file: { code: number; data: { path: string } }) => {
   if (file.code == 200) {
-    fileList.value.push(file.data.path)
+    fileList.value.push(file.data.path as unknown as IAnyObj)
     ElMessage.success('上传成功')
   } else {
     ElMessage.success('上传失败')

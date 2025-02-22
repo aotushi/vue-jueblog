@@ -10,7 +10,13 @@ const shortmsgsSchema = new mongoose.Schema({
     default: [],
   },
   created_by: { type: ObjectId, required: true },
-  created_at: { type: Date, default: Date.now },
+  created_at: {
+    type: Date,
+    default: function () {
+      // 使用本地时间
+      return new Date(Date.now() + 8 * 60 * 60 * 1000) // UTC+8
+    },
+  },
   group: {
     type: String,
     enum: circles.map(item => item.key).concat(['all']),

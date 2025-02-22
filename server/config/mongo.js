@@ -1,10 +1,7 @@
 const mongoose = require('mongoose')
 const connect = (req, res, next) => {
   mongoose
-    .connect('mongodb://127.0.0.1:27017/juejin_blog', {
-      user: 'abc',
-      pass: 'abcpwd',
-    })
+    .connect('mongodb://vue-blog-mongo:27017/blog')
     // .connect(
     //   'mongodb+srv://jioshya:b3Lfcy5nwK5FsrUE@cluster0.2xsu8.mongodb.net/',
     //   {

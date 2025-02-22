@@ -45,27 +45,23 @@ export const getTimer = (stringTime: string) => {
   const day = hour * 24
   const week = day * 7
   const month = day * 30
-  const time1 = new Date().getTime() //当前的时间戳
-  const time2 = Date.parse(stringTime) //指定时间的时间戳
+  const time1 = new Date().getTime()
+  const time2 = Date.parse(stringTime)
   const time = time1 - time2
 
-  let result = null
-  if (time < 0) {
-    alert('设置的时间不能早于当前时间！')
-  } else if (time / month >= 1) {
-    result = Math.floor(time / month) + '月前'
+  if (time / month >= 1) {
+    return Math.floor(time / month) + '月前'
   } else if (time / week >= 1) {
-    result = Math.floor(time / week) + '周前'
+    return Math.floor(time / week) + '周前'
   } else if (time / day >= 1) {
-    result = Math.floor(time / day) + '天前'
+    return Math.floor(time / day) + '天前'
   } else if (time / hour >= 1) {
-    result = Math.floor(time / hour) + '小时前'
+    return Math.floor(time / hour) + '小时前'
   } else if (time / minute >= 1) {
-    result = Math.floor(time / minute) + '分钟前'
+    return Math.floor(time / minute) + '分钟前'
   } else {
-    result = '刚刚'
+    return '刚刚'
   }
-  return result
 }
 
 export const isToBottom = (fn: () => void) => {

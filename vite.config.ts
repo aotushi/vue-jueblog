@@ -13,22 +13,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    outDir: 'dist', // 确保输出目录正确
+  },
   server: {
     proxy: {
-      '/api$': {
-        target: 'http://localhost:1337',
-        changeOrigin: true,
-        // rewrite: path => path.replace(/^\/api/, ''),
-        configure: (proxy, options) => {
-          // eslint-disable-next-line
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('代理请求路径', req.url)
-            console.log('代理目标', options.target)
-          })
-        },
-      },
       '/api2': {
-        target: 'http://localhost:9000',
+        target: 'http://localhost:3007', // 开发环境配置
         changeOrigin: true,
         rewrite: path => path.replace(/^\/api2/, ''),
       },

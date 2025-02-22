@@ -32,8 +32,20 @@ const articlesSchema = new mongoose.Schema({
   status: { type: Number, enum: [0, 1], default: 0 },
   tags: { type: ObjectId },
   page_view: { type: Number, default: 0 },
-  created_at: { type: Date, default: Date.now },
-  updated_at: { type: Date, default: Date.now },
+  created_at: {
+    type: Date,
+    default: function () {
+      // 使用本地时间
+      return new Date(Date.now() + 8 * 60 * 60 * 1000) // UTC+8
+    },
+  },
+  updated_at: {
+    type: Date,
+    default: function () {
+      // 使用本地时间
+      return new Date(Date.now() + 8 * 60 * 60 * 1000) // UTC+8
+    },
+  },
   created_by: { type: ObjectId, required: true }, //文章创建者
 })
 

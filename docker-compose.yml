@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+
+  vue-blog:
+    build: .
+
+  vue-blog-server:
+    build: ./server
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://vue-blog-mongo:27017/blog
+    depends_on:
+      - vue-blog-mongo
+
+  vue-blog-mongo:
+    image: mongo:5.0.30
+    volumes:
+      - vue_blog_mongo_data:/data/db
+    command: mongod --bind_ip_all --noauth
+
+volumes:
+  vue_blog_mongo_data: 
