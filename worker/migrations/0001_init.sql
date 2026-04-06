@@ -74,3 +74,17 @@ CREATE TABLE IF NOT EXISTS shortmsgs (
   group_key  TEXT    NOT NULL DEFAULT 'all',
   created_at TEXT    NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_articles_category   ON articles(category);
+CREATE INDEX IF NOT EXISTS idx_articles_created_by ON articles(created_by);
+CREATE INDEX IF NOT EXISTS idx_articles_status     ON articles(status);
+CREATE INDEX IF NOT EXISTS idx_comments_source_id  ON comments(source_id);
+CREATE INDEX IF NOT EXISTS idx_comments_created_by ON comments(created_by);
+CREATE INDEX IF NOT EXISTS idx_follows_user_id     ON follows(user_id);
+CREATE INDEX IF NOT EXISTS idx_follows_fans_id     ON follows(fans_id);
+CREATE INDEX IF NOT EXISTS idx_praises_target      ON praises(target_id, target_type);
+CREATE INDEX IF NOT EXISTS idx_praises_created_by  ON praises(created_by);
+CREATE INDEX IF NOT EXISTS idx_messages_user_id    ON messages(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_shortmsgs_group_key ON shortmsgs(group_key);
+CREATE INDEX IF NOT EXISTS idx_shortmsgs_created_by ON shortmsgs(created_by);
