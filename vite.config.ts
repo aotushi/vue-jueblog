@@ -19,9 +19,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api2': {
-        target: 'http://localhost:3007', // 开发环境配置
+        target: 'http://localhost:8787',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/api2/, ''),
       },
     },
   },
