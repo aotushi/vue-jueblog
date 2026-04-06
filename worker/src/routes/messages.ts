@@ -56,17 +56,14 @@ messages.get('/praises', authMiddleware, async c => {
   const { results } = await db
     .prepare(
       `
-    SELECT m.*, a.title AS article_title,
-      u.username AS from_username, u.avatar AS from_avatar
+    SELECT m.*, u.username AS from_username, u.avatar AS from_avatar
     FROM messages m
-    LEFT JOIN articles a ON a.id = m.source_id
-    LEFT JOIN praises p ON p.target_id = m.source_id AND p.target_type=1 AND p.created_by != ?
-    LEFT JOIN users u ON u.id = p.created_by
+    LEFT JOIN users u ON u.id = m.source_id
     WHERE m.user_id=? AND m.type=2
     ORDER BY m.created_at DESC LIMIT 20
   `,
     )
-    .bind(userId, userId)
+    .bind(userId)
     .all()
   await db
     .prepare('UPDATE messages SET status=1 WHERE user_id=? AND type=2')

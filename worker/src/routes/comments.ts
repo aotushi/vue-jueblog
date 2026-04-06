@@ -94,14 +94,24 @@ comments.post('/', authMiddleware, async c => {
     )
     .run()
 
-  const article = await db
-    .prepare('SELECT created_by FROM articles WHERE id=?')
-    .bind(source_id)
-    .first<{ created_by: number }>()
-  if (article && article.created_by !== userId) {
+  let ownerUserId: number | null = null
+  if (type === 'shortmsg') {
+    const msg = await db
+      .prepare('SELECT created_by FROM shortmsgs WHERE id=?')
+      .bind(source_id)
+      .first<{ created_by: number }>()
+    ownerUserId = msg?.created_by ?? null
+  } else {
+    const article = await db
+      .prepare('SELECT created_by FROM articles WHERE id=?')
+      .bind(source_id)
+      .first<{ created_by: number }>()
+    ownerUserId = article?.created_by ?? null
+  }
+  if (ownerUserId && ownerUserId !== userId) {
     await db
       .prepare('INSERT INTO messages (user_id,source_id,type) VALUES (?,?,1)')
-      .bind(article.created_by, result.meta.last_row_id)
+      .bind(ownerUserId, result.meta.last_row_id)
       .run()
   }
   return ok({ id: result.meta.last_row_id })

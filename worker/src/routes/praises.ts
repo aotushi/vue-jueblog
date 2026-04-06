@@ -39,7 +39,7 @@ praises.post('/toggle', authMiddleware, async c => {
     if (article && article.created_by !== userId) {
       await db
         .prepare('INSERT INTO messages (user_id,source_id,type) VALUES (?,?,2)')
-        .bind(article.created_by, target_id)
+        .bind(article.created_by, userId)
         .run()
     }
   }
