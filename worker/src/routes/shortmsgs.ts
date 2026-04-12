@@ -10,24 +10,40 @@ const shortmsgs = new Hono<AppEnv>()
 shortmsgs.get('/groups', _c => {
   return ok([
     { key: 'all', label: '综合', icon: 'orange' },
-    { key: 'daily', label: '打工日常' },
-    { key: 'techno', label: '技术圈' },
-    { key: 'blind_date', label: '相亲角' },
-    { key: 'slack_off', label: '上班摸鱼' },
-    { key: 'eating', label: '中午吃啥' },
-    { key: 'playing', label: '下班去哪玩' },
-    { key: 'bigtea', label: '在线吃瓜' },
+    {
+      key: 'circles',
+      label: '圈子',
+      children: [
+        { key: 'daily', label: '打工日常' },
+        { key: 'techno', label: '技术圈' },
+        { key: 'blind_date', label: '相亲角' },
+        { key: 'slack_off', label: '上班摸鱼' },
+        { key: 'eating', label: '中午吃啥' },
+        { key: 'playing', label: '下班去哪玩' },
+        { key: 'bigtea', label: '在线吃瓜' },
+      ],
+    },
   ])
 })
 
 // GET /lists — 沸点列表（可选认证，登录后返回 is_praise）
 shortmsgs.get('/lists', optionalAuth, async c => {
-  const { group = 'all', page = '1' } = c.req.query()
+  const { group = 'all', page = '1', created_by = '' } = c.req.query()
   const limit = 20
   const offset = (Number(page) - 1) * limit
   const db = c.env.DB
   const userId = c.get('userId') ?? null
-  const isAll = group === 'all'
+  const isAll = !group || group === 'all'
+  const hasAuthor = !!created_by
+
+  const conditions: string[] = ['1=1']
+  if (!isAll) conditions.push('s.group_key = ?')
+  if (hasAuthor) conditions.push('s.created_by = ?')
+  const where = conditions.join(' AND ')
+
+  const binds: unknown[] = []
+  if (!isAll) binds.push(group)
+  if (hasAuthor) binds.push(Number(created_by))
 
   const { results } = await db
     .prepare(
@@ -39,12 +55,12 @@ shortmsgs.get('/lists', optionalAuth, async c => {
       LEFT JOIN users u ON u.id = s.created_by
       LEFT JOIN praises p ON p.target_id = s.id AND p.target_type=2 AND p.type=1
       LEFT JOIN comments cm ON cm.source_id = s.id AND cm.type = 'shortmsg'
-      WHERE 1=1 ${isAll ? '' : 'AND s.group_key = ?'}
+      WHERE ${where}
       GROUP BY s.id
       ORDER BY s.created_at DESC
       LIMIT ? OFFSET ?`,
     )
-    .bind(...(isAll ? [limit, offset] : [group, limit, offset]))
+    .bind(...binds, limit, offset)
     .all<Record<string, unknown>>()
 
   let praisedSet = new Set<number>()
@@ -73,10 +89,8 @@ shortmsgs.get('/lists', optionalAuth, async c => {
   }))
 
   const countRow = await db
-    .prepare(
-      `SELECT COUNT(*) AS total FROM shortmsgs${isAll ? '' : ' WHERE group_key = ?'}`,
-    )
-    .bind(...(isAll ? [] : [group]))
+    .prepare(`SELECT COUNT(*) AS total FROM shortmsgs s WHERE ${where}`)
+    .bind(...binds)
     .first<{ total: number }>()
 
   return ok({

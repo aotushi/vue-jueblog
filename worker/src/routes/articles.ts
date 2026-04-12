@@ -7,11 +7,21 @@ const articles = new Hono<AppEnv>()
 
 // GET /lists — 文章列表（前端调用路径）
 articles.get('/lists', async c => {
-  const { category = 'all', page = '1' } = c.req.query()
+  const { category = 'all', page = '1', created_by = '' } = c.req.query()
   const limit = 10
   const offset = (Number(page) - 1) * limit
   const db = c.env.DB
   const isAll = category === 'all'
+  const hasAuthor = !!created_by
+
+  const conditions: string[] = ['a.status = 1']
+  if (!isAll) conditions.push('a.category = ?')
+  if (hasAuthor) conditions.push('a.created_by = ?')
+  const where = conditions.join(' AND ')
+
+  const binds: unknown[] = []
+  if (!isAll) binds.push(category)
+  if (hasAuthor) binds.push(Number(created_by))
 
   const { results } = await db
     .prepare(
@@ -26,19 +36,17 @@ articles.get('/lists', async c => {
       LEFT JOIN users u ON u.id = a.created_by
       LEFT JOIN praises p ON p.target_id = a.id AND p.target_type = 1 AND p.type = 1
       LEFT JOIN comments cm ON cm.source_id = a.id AND cm.type = 'article'
-      WHERE a.status = 1 ${isAll ? '' : 'AND a.category = ?'}
+      WHERE ${where}
       GROUP BY a.id
       ORDER BY a.created_at DESC
       LIMIT ? OFFSET ?`,
     )
-    .bind(...(isAll ? [limit, offset] : [category, limit, offset]))
+    .bind(...binds, limit, offset)
     .all<Record<string, unknown>>()
 
   const countRow = await db
-    .prepare(
-      `SELECT COUNT(*) AS total FROM articles WHERE status = 1${isAll ? '' : ' AND category = ?'}`,
-    )
-    .bind(...(isAll ? [] : [category]))
+    .prepare(`SELECT COUNT(*) AS total FROM articles a WHERE ${where}`)
+    .bind(...binds)
     .first<{ total: number }>()
 
   const list = results.map(r => ({
@@ -88,7 +96,6 @@ articles.get('/detail/:id', optionalAuth, async c => {
       `SELECT a.*, u.id AS author_id, u.username AS author_name,
         u.avatar AS author_avatar, u.position AS author_position,
         u.introduc AS author_introduc, u.company AS author_company,
-        u.good_num AS author_good_num, u.read_num AS author_read_num,
         (SELECT COUNT(*) FROM praises WHERE target_id=a.id AND target_type=1 AND type=1) AS praise_num,
         (SELECT COUNT(*) FROM praises WHERE target_id=a.id AND target_type=1 AND type=2) AS star_num,
         (SELECT COUNT(*) FROM comments WHERE source_id=a.id AND type='article') AS comment_num
@@ -131,8 +138,8 @@ articles.get('/detail/:id', optionalAuth, async c => {
       position: article.author_position,
       introduc: article.author_introduc,
       company: article.author_company,
-      good_num: article.author_good_num,
-      read_num: article.author_read_num,
+      good_num: article.praise_num,
+      read_num: article.page_view,
     },
   })
 })

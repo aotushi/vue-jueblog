@@ -42,6 +42,17 @@ praises.post('/toggle', authMiddleware, async c => {
         .bind(article.created_by, userId)
         .run()
     }
+  } else if (target_type === 2) {
+    const shortmsg = await db
+      .prepare('SELECT created_by FROM shortmsgs WHERE id=?')
+      .bind(target_id)
+      .first<{ created_by: number }>()
+    if (shortmsg && shortmsg.created_by !== userId) {
+      await db
+        .prepare('INSERT INTO messages (user_id,source_id,type) VALUES (?,?,2)')
+        .bind(shortmsg.created_by, userId)
+        .run()
+    }
   }
   return ok({ action: 'praised' })
 })

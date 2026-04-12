@@ -156,7 +156,7 @@ export const useUserStore = defineStore(
           if (data?.data) {
             const { data: followData } = data
             if (fun) {
-              fun(followData)
+              fun((followData as { followed: boolean }).followed ?? false)
             }
           }
         }

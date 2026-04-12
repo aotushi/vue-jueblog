@@ -11,17 +11,16 @@ messages.get('/', authMiddleware, async c => {
   const db = c.env.DB
   const row = await db
     .prepare(
-      `
-    SELECT
-      SUM(CASE WHEN type=1 THEN 1 ELSE 0 END) AS comment_num,
-      SUM(CASE WHEN type=2 THEN 1 ELSE 0 END) AS praise_num,
-      SUM(CASE WHEN type=3 THEN 1 ELSE 0 END) AS follow_num
-    FROM messages WHERE user_id=? AND status=0
-  `,
+      `SELECT
+        COALESCE(SUM(CASE WHEN type=1 THEN 1 ELSE 0 END), 0) AS comment,
+        COALESCE(SUM(CASE WHEN type=2 THEN 1 ELSE 0 END), 0) AS praise,
+        COALESCE(SUM(CASE WHEN type=3 THEN 1 ELSE 0 END), 0) AS follow
+      FROM messages WHERE user_id=? AND status=0`,
     )
     .bind(userId)
-    .first<{ comment_num: number; praise_num: number; follow_num: number }>()
-  return ok(row ?? { comment_num: 0, praise_num: 0, follow_num: 0 })
+    .first<{ comment: number; praise: number; follow: number }>()
+  const base = row ?? { comment: 0, praise: 0, follow: 0 }
+  return ok({ ...base, total: base.comment + base.praise + base.follow })
 })
 
 // GET /preview — 未读消息数量汇总（前端调用路径，需登录）
@@ -31,14 +30,15 @@ messages.get('/preview', authMiddleware, async c => {
   const row = await db
     .prepare(
       `SELECT
-        SUM(CASE WHEN type=1 THEN 1 ELSE 0 END) AS comment_num,
-        SUM(CASE WHEN type=2 THEN 1 ELSE 0 END) AS praise_num,
-        SUM(CASE WHEN type=3 THEN 1 ELSE 0 END) AS follow_num
+        COALESCE(SUM(CASE WHEN type=1 THEN 1 ELSE 0 END), 0) AS comment,
+        COALESCE(SUM(CASE WHEN type=2 THEN 1 ELSE 0 END), 0) AS praise,
+        COALESCE(SUM(CASE WHEN type=3 THEN 1 ELSE 0 END), 0) AS follow
       FROM messages WHERE user_id=? AND status=0`,
     )
     .bind(userId)
-    .first<{ comment_num: number; praise_num: number; follow_num: number }>()
-  return ok(row ?? { comment_num: 0, praise_num: 0, follow_num: 0 })
+    .first<{ comment: number; praise: number; follow: number }>()
+  const base = row ?? { comment: 0, praise: 0, follow: 0 }
+  return ok({ ...base, total: base.comment + base.praise + base.follow })
 })
 
 // GET /comments — 评论消息列表（需登录）
