@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 const toGithub = () => {
-  window.open(
-    'https://github.com/aotushi/allDo/tree/master/Project/Vue/juejinVue',
-  )
+  window.open('https://ghproxy.vip/https://github.com/aotushi/vue-jueblog')
 }
 onMounted(() => {})
 </script>
