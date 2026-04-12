@@ -44,10 +44,11 @@ const deleteShortMsg = (index: number) => {
 }
 
 const toPraise = (smsg: ShortMsgType) => {
-  let { _id, created_by } = smsg
+  let { _id } = smsg
   let form = {
     target_id: _id,
-    target_user: created_by,
+    target_type: 2,
+    type: 1,
   }
   store.togglePraise(form, bool => {
     smsg.is_praise = bool

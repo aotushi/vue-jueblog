@@ -90,7 +90,7 @@ onMounted(() => {
   form.value = {
     source_id: props.art_id,
     source_type: 1,
-    type: 'source',
+    type: 'article',
     content: '',
     target_user: props.user_id,
   }

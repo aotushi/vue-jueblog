@@ -80,4 +80,45 @@ follows.get('/', async c => {
   }
 })
 
+// POST /is-follow — 检查是否已关注（前端调用路径，需登录）
+follows.post('/is-follow', authMiddleware, async c => {
+  const { user_id } = await c.req.json()
+  const fansId = c.get('userId')
+  const result = await c.env.DB.prepare(
+    'SELECT id FROM follows WHERE user_id=? AND fans_id=?',
+  )
+    .bind(Number(user_id), fansId)
+    .first()
+  return ok({ followed: !!result })
+})
+
+// GET /lists — 关注/粉丝列表（前端调用路径）
+follows.get('/lists', async c => {
+  const { user_id, type = 'following' } = c.req.query()
+  if (!user_id) return err('user_id 不能为空')
+  const db = c.env.DB
+
+  if (type === 'following') {
+    const { results } = await db
+      .prepare(
+        `SELECT u.id, u.username, u.avatar, u.position, u.introduc
+        FROM follows f LEFT JOIN users u ON u.id = f.user_id
+        WHERE f.fans_id = ? ORDER BY f.created_at DESC`,
+      )
+      .bind(Number(user_id))
+      .all()
+    return ok(results)
+  } else {
+    const { results } = await db
+      .prepare(
+        `SELECT u.id, u.username, u.avatar, u.position, u.introduc
+        FROM follows f LEFT JOIN users u ON u.id = f.fans_id
+        WHERE f.user_id = ? ORDER BY f.created_at DESC`,
+      )
+      .bind(Number(user_id))
+      .all()
+    return ok(results)
+  }
+})
+
 export default follows

@@ -33,27 +33,22 @@ const toFollow = () => {
     is_follow.value = !is_follow.value
   })
 }
-const toPraiseOrStart = (type: 1 | 2) => {
-  console.log('type>', type)
-
+const toPraiseOrStart = (actionType: 1 | 2) => {
   if (!article.value) return
   let { _id, created_by } = article.value
   let form = {
     target_id: _id,
     target_user: created_by,
-    target_type: type,
-    type: type,
+    target_type: 1,
+    type: actionType,
   }
   article_store.togglePraise(form, bool => {
-    if (type == 1) {
+    if (actionType == 1) {
       if (!article.value) return
-
       article.value.is_praise = bool as boolean
       article.value.praises += bool ? 1 : -1
     } else {
       if (article.value === null) return
-      console.log('bool>>', bool)
-
       article.value.is_start = bool as boolean
       if (article.value.stars === undefined) return
       article.value.stars += bool ? 1 : -1

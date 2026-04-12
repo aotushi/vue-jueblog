@@ -16,3 +16,16 @@ export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
     return unauthorized()
   }
 })
+
+export const optionalAuth = createMiddleware<AppEnv>(async (c, next) => {
+  const authHeader = c.req.header('Authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const payload = await verifyJwt(authHeader.slice(7))
+      c.set('userId', payload.id)
+    } catch {
+      /* ignore invalid token */
+    }
+  }
+  await next()
+})

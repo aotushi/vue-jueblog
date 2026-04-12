@@ -74,8 +74,45 @@ users.get('/:id', async c => {
   return ok(user)
 })
 
+// GET /info/:id — 获取用户信息（前端调用路径）
+users.get('/info/:id', async c => {
+  const id = Number(c.req.param('id'))
+  const db = c.env.DB
+  const user = await db
+    .prepare(
+      'SELECT id,phone,username,avatar,introduc,position,company,jue_power,good_num,read_num FROM users WHERE id = ?',
+    )
+    .bind(id)
+    .first()
+  if (!user) return err('用户不存在', 404)
+  return ok(user)
+})
+
 // PUT /:id — 更新用户信息（需登录）
 users.put('/:id', authMiddleware, async c => {
+  const id = Number(c.req.param('id'))
+  const userId = c.get('userId')
+  if (id !== userId) return err('无权限', 403)
+
+  const { username, avatar, introduc, position, company } = await c.req.json()
+  const db = c.env.DB
+  await db
+    .prepare(
+      'UPDATE users SET username=?,avatar=?,introduc=?,position=?,company=? WHERE id=?',
+    )
+    .bind(username, avatar, introduc, position, company, id)
+    .run()
+  const user = await db
+    .prepare(
+      'SELECT id,username,avatar,introduc,position,company FROM users WHERE id=?',
+    )
+    .bind(id)
+    .first()
+  return ok(user)
+})
+
+// PUT /update/:id — 更新用户信息（前端调用路径，需登录）
+users.put('/update/:id', authMiddleware, async c => {
   const id = Number(c.req.param('id'))
   const userId = c.get('userId')
   if (id !== userId) return err('无权限', 403)

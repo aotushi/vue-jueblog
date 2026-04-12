@@ -42,7 +42,24 @@ export const useArticleStore = defineStore(
         if (!err && data) {
           if (data?.data) {
             const { data: articlesListData } = data
-            const { meta, data: articles } = articlesListData
+            const { meta, data: rawArticles } = articlesListData
+
+            const normalizeArticle = (
+              r: Record<string, unknown>,
+            ): ArticleType => ({
+              ...(r as unknown as ArticleType),
+              _id: String(r.id),
+              praises: (r.praise_num as number) ?? 0,
+              comments: (r.comment_num as number) ?? 0,
+              is_praise: false,
+              user: {
+                ...((r.author as Record<string, unknown>) ?? {}),
+                _id: String((r.author as Record<string, unknown>)?.id ?? ''),
+              } as unknown as ArticleType['user'],
+            })
+            const articles = (
+              rawArticles as unknown as Record<string, unknown>[]
+            ).map(normalizeArticle)
 
             articleInfo.value.articles =
               page === 1
@@ -52,7 +69,10 @@ export const useArticleStore = defineStore(
             articleInfo.value.meta = meta as typeof articleInfo.value.meta
 
             if (fun) {
-              fun(articlesListData as unknown as ArticleList)
+              fun({
+                ...articlesListData,
+                data: articles,
+              } as unknown as ArticleList)
             }
 
             articleInfo.value.loading = false
@@ -74,9 +94,23 @@ export const useArticleStore = defineStore(
         const [err, data] = res
         if (!err && data) {
           if (data?.data) {
-            const { data: articleDetailData } = data
+            const raw = data.data as unknown as Record<string, unknown>
+            const normalized: ArticleType = {
+              ...(raw as unknown as ArticleType),
+              _id: String(raw.id),
+              created_by: String(raw.created_by),
+              praises: (raw.praise_num as number) ?? 0,
+              stars: (raw.star_num as number) ?? 0,
+              comments: (raw.comment_num as number) ?? 0,
+              is_praise: !!raw.is_praise,
+              is_start: !!raw.is_start,
+              user: {
+                ...((raw.author as Record<string, unknown>) ?? {}),
+                _id: String((raw.author as Record<string, unknown>)?.id ?? ''),
+              } as unknown as ArticleType['user'],
+            }
             if (fun) {
-              fun(articleDetailData)
+              fun(normalized)
             }
           }
         }
@@ -119,7 +153,7 @@ export const useArticleStore = defineStore(
           if (data?.data) {
             const { data: praiseData } = data
             if (fun) {
-              fun(praiseData.action == 'create' ? true : false)
+              fun(praiseData.action == 'praised' ? true : false)
             }
           }
         }
@@ -140,7 +174,8 @@ export const useArticleStore = defineStore(
         if (!err && data) {
           if (data?.data) {
             const { data: articlesData } = data
-            fun(articlesData as mdArticleType)
+            const raw = articlesData as unknown as Record<string, unknown>
+            fun({ ...(raw as unknown as mdArticleType), _id: String(raw.id) })
           }
         }
       } catch (error) {

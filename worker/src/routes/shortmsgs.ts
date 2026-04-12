@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import type { AppEnv } from '../types'
 import { ok, err } from '../utils/response'
-import { authMiddleware } from '../middleware/auth'
+import { authMiddleware, optionalAuth } from '../middleware/auth'
 
 const shortmsgs = new Hono<AppEnv>()
 
@@ -20,35 +20,50 @@ shortmsgs.get('/groups', _c => {
   ])
 })
 
-// GET / — 获取沸点列表
-shortmsgs.get('/', async c => {
+// GET /lists — 沸点列表（可选认证，登录后返回 is_praise）
+shortmsgs.get('/lists', optionalAuth, async c => {
   const { group = 'all', page = '1' } = c.req.query()
   const limit = 20
   const offset = (Number(page) - 1) * limit
   const db = c.env.DB
+  const userId = c.get('userId') ?? null
   const isAll = group === 'all'
 
   const { results } = await db
     .prepare(
-      `
-    SELECT s.id, s.content, s.images, s.group_key, s.created_at,
-      u.id AS user_id, u.username, u.avatar, u.position,
-      COUNT(DISTINCT p.id) AS praise_num
-    FROM shortmsgs s
-    LEFT JOIN users u ON u.id = s.created_by
-    LEFT JOIN praises p ON p.target_id = s.id AND p.target_type=2 AND p.type=1
-    WHERE 1=1 ${isAll ? '' : 'AND s.group_key = ?'}
-    GROUP BY s.id
-    ORDER BY s.created_at DESC
-    LIMIT ? OFFSET ?
-  `,
+      `SELECT s.id, s.content, s.images, s.group_key, s.created_at, s.created_by,
+        u.id AS user_id, u.username, u.avatar, u.position,
+        COUNT(DISTINCT p.id) AS praise_num,
+        COUNT(DISTINCT cm.id) AS comment_num
+      FROM shortmsgs s
+      LEFT JOIN users u ON u.id = s.created_by
+      LEFT JOIN praises p ON p.target_id = s.id AND p.target_type=2 AND p.type=1
+      LEFT JOIN comments cm ON cm.source_id = s.id AND cm.type = 'shortmsg'
+      WHERE 1=1 ${isAll ? '' : 'AND s.group_key = ?'}
+      GROUP BY s.id
+      ORDER BY s.created_at DESC
+      LIMIT ? OFFSET ?`,
     )
     .bind(...(isAll ? [limit, offset] : [group, limit, offset]))
     .all<Record<string, unknown>>()
 
+  let praisedSet = new Set<number>()
+  if (userId && results.length > 0) {
+    const ids = results.map(r => r.id as number)
+    const placeholders = ids.map(() => '?').join(',')
+    const { results: praised } = await db
+      .prepare(
+        `SELECT target_id FROM praises WHERE target_id IN (${placeholders}) AND target_type=2 AND type=1 AND created_by=?`,
+      )
+      .bind(...ids, userId)
+      .all<{ target_id: number }>()
+    praisedSet = new Set(praised.map(p => p.target_id))
+  }
+
   const list = results.map(r => ({
     ...r,
     images: JSON.parse(r.images as string),
+    is_praise: praisedSet.has(r.id as number),
     author: {
       id: r.user_id,
       username: r.username,
@@ -56,11 +71,22 @@ shortmsgs.get('/', async c => {
       position: r.position,
     },
   }))
-  return ok(list)
+
+  const countRow = await db
+    .prepare(
+      `SELECT COUNT(*) AS total FROM shortmsgs${isAll ? '' : ' WHERE group_key = ?'}`,
+    )
+    .bind(...(isAll ? [] : [group]))
+    .first<{ total: number }>()
+
+  return ok({
+    meta: { page: Number(page), per_page: limit, total: countRow?.total ?? 0 },
+    data: list,
+  })
 })
 
-// POST / — 发布沸点（需登录）
-shortmsgs.post('/', authMiddleware, async c => {
+// POST /create — 发布沸点（需登录）
+shortmsgs.post('/create', authMiddleware, async c => {
   const { content, images = [], group_key = 'all' } = await c.req.json()
   if (!content) return err('内容不能为空')
   const userId = c.get('userId')
@@ -72,8 +98,8 @@ shortmsgs.post('/', authMiddleware, async c => {
   return ok({ id: result.meta.last_row_id })
 })
 
-// DELETE /:id — 删除沸点（需登录）
-shortmsgs.delete('/:id', authMiddleware, async c => {
+// DELETE /remove/:id — 删除沸点（需登录）
+shortmsgs.delete('/remove/:id', authMiddleware, async c => {
   const id = Number(c.req.param('id'))
   const userId = c.get('userId')
   const db = c.env.DB

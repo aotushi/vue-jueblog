@@ -75,9 +75,13 @@ const toCreate = (data = {}) => {
   })
 }
 const getComments = () => {
-  store.getComments(props.msg_id, res => {
-    comments.value = res as unknown as CommentResultType[]
-  })
+  store.getComments(
+    props.msg_id,
+    res => {
+      comments.value = res as unknown as CommentResultType[]
+    },
+    'shortmsg',
+  )
 }
 
 const action_load = computed(() => store.comment_info.action_load)
@@ -88,7 +92,7 @@ onMounted(() => {
   form.value = {
     source_id: props.msg_id,
     source_type: 2,
-    type: 'source',
+    type: 'shortmsg',
     content: '',
     target_user: props.user_id,
   }

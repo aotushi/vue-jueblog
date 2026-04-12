@@ -45,8 +45,21 @@ const useShortMsgStore = defineStore('short-msg', {
         if (!err && data) {
           if (data?.data) {
             const { data: shortMsgs } = data
-            this.shortmsgs =
-              page == 1 ? shortMsgs.data : this.shortmsgs.concat(shortMsgs.data)
+            const normalize = (r: Record<string, unknown>): ShortMsgType => ({
+              ...(r as unknown as ShortMsgType),
+              _id: String(r.id),
+              is_praise: !!r.is_praise,
+              praises: (r.praise_num as number) ?? 0,
+              comments: (r.comment_num as number) ?? 0,
+              user: {
+                ...((r.author as Record<string, unknown>) ?? {}),
+                _id: String((r.author as Record<string, unknown>)?.id ?? ''),
+              } as unknown as ShortMsgType['user'],
+            })
+            const list = (
+              shortMsgs.data as unknown as Record<string, unknown>[]
+            ).map(normalize)
+            this.shortmsgs = page == 1 ? list : this.shortmsgs.concat(list)
             this.meta = shortMsgs.meta as {
               page: number
               per_page: number
@@ -65,7 +78,7 @@ const useShortMsgStore = defineStore('short-msg', {
     // 沸点分组
     async getGroups() {
       try {
-        const res = await request.get<GroupType[]>('/api2/stmsgs/group')
+        const res = await request.get<GroupType[]>('/api2/stmsgs/groups')
 
         const [err, data] = res
         if (!err && data) {
@@ -92,7 +105,7 @@ const useShortMsgStore = defineStore('short-msg', {
         if (!err && data) {
           if (data?.data) {
             const { data: praiseData } = data
-            fun(praiseData.action == 'create' ? true : false)
+            fun(praiseData.action == 'praised' ? true : false)
           }
         }
         // fun(res.action == 'create' ? true : false)
