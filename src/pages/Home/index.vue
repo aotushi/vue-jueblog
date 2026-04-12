@@ -43,7 +43,7 @@ onMounted(() => {
   filter.value = route.query
   article_store.getCategory()
   article_store.getArticles(filter.value)
-  if (user_store.user_state.user_info) {
+  if (user_store.isLoggedIn) {
     useMessageStore().getMessage()
   }
   listener.apply('scroll-end', onScrollEnd)
