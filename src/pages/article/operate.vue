@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import CusEditor from '@/components/cus-editor/index.vue'
-import { useArticleStore } from '@/stores'
+import { useArticleStore, useUserStore } from '@/stores'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { debounce } from '@/utils'
 import type { ArticleType } from '@/stores/article/type'
+import { getAvatarUrl } from '@/utils/avatar'
 
 export interface mdArticleType {
   title: string
@@ -21,7 +22,9 @@ export interface mdArticleType {
   __v: number
 }
 
-// const user_store = useUserStore()
+const {
+  user_state: { user_info },
+} = useUserStore()
 const article_store = useArticleStore()
 const route = useRoute()
 const router = useRouter()
@@ -158,7 +161,10 @@ onMounted(() => {
         </el-popover>
         <div class="user-wrap">
           <el-tooltip effect="dark" content="返回用户中心">
-            <el-avatar :size="32">
+            <el-avatar
+              :size="32"
+              :src="getAvatarUrl(user_info?.username, user_info?.avatar)"
+            >
               <img src="@/assets/avatar.png" />
             </el-avatar>
           </el-tooltip>

@@ -63,9 +63,14 @@ export const useUserStore = defineStore(
       user_state.value.show_tips = bool
     }
 
-    function setUserInfo(info: UserType) {
-      user_state.value.user_info = info
-      localStorage.setItem('jueblog_user_info', JSON.stringify(info))
+    function setUserInfo(info: UserType | Record<string, unknown>) {
+      const raw = info as Record<string, unknown>
+      const normalized = {
+        ...raw,
+        _id: (raw._id as string) || String(raw.id ?? ''),
+      } as UserType
+      user_state.value.user_info = normalized
+      localStorage.setItem('jueblog_user_info', JSON.stringify(normalized))
     }
     // 登录
     async function login(form: IAnyObj, fun: (code: number) => void) {
@@ -73,20 +78,24 @@ export const useUserStore = defineStore(
         const res = await api.login(form)
         const [err, resData] = res
 
-        if (!err) {
-          if (resData?.data) {
-            if (resData.data.code === 20001 && resData.data.message) {
-              ElMessage.error(resData.data.message)
+        if (err) {
+          const msg = (err as { response?: { data?: { message?: string } } })
+            .response?.data?.message
+          fun(msg === '用户不存在' ? 20002 : 400)
+          return
+        }
+
+        if (resData?.data) {
+          const data = resData.data as unknown as Record<string, unknown>
+          if (data.token) {
+            localStorage.setItem('jueblog_token', data.token as string)
+            user_state.value.user_info = {
+              ...(data as unknown as UserType),
+              _id: String(data.id),
             }
-
-            if (resData.data.code === 200 && resData.data.token) {
-              localStorage.setItem('jueblog_token', resData.data.token)
-
-              user_state.value.user_info = resData.data
-                .result as unknown as UserType
-            }
-
-            fun(resData.data.code)
+            fun(200)
+          } else {
+            fun(500)
           }
         }
       } catch (error) {
@@ -99,20 +108,20 @@ export const useUserStore = defineStore(
     async function register(form: IAnyObj, fun: (code: number) => void) {
       try {
         const [error, res] = await api.register(form)
-        if (!error) {
-          if (res?.data) {
-            if (Object.keys(res.data).includes('_id')) {
-              login(form, fun)
-              ElMessage.success('注册成功')
-
-              fun(200)
-            } else {
-              ElMessage.error('注册失败')
-              fun(500)
-            }
-          }
+        if (error) {
+          fun(400)
+          return
+        }
+        if (res?.data && (res.data as unknown as Record<string, unknown>).id) {
+          // 注册成功，自动登录
+          ElMessage.success('注册成功')
+          await login(form, fun)
+        } else {
+          ElMessage.error('注册失败')
+          fun(500)
         }
       } catch (error) {
+        fun(500)
         ElMessage.error('注册失败' + error)
       }
     }
@@ -147,7 +156,10 @@ export const useUserStore = defineStore(
           if (data?.data) {
             const { data: followData } = data
             if (fun) {
-              fun(followData)
+              fun(
+                (followData as unknown as { followed: boolean }).followed ??
+                  false,
+              )
             }
           }
         }
@@ -159,13 +171,14 @@ export const useUserStore = defineStore(
     // 获取用户信息
     async function getUser(id: string, fun?: (data: unknown) => void) {
       try {
-        const res = await api.getUser(id)
+        const resolvedId = id === 'self' ? user_state.value.user_info?._id : id
+        if (!resolvedId) return
+        const res = await api.getUser(resolvedId)
         const [err, data] = res
         if (!err && data?.data) {
-          if (id == 'self') {
+          if (id === 'self') {
             setUserInfo(data.data)
           }
-
           if (fun) {
             fun(data.data)
           }
@@ -182,17 +195,17 @@ export const useUserStore = defineStore(
       fun?: (data: unknown) => void,
     ) {
       try {
-        console.log('updateUser>id', id)
-        const res = await request.put('/api2/users/update/' + id, data)
+        const resolvedId = id === 'self' ? user_state.value.user_info?._id : id
+        if (!resolvedId) return
+        const res = await request.put<UserType>(
+          '/api2/users/update/' + resolvedId,
+          data,
+        )
         const [err, dataRes] = res
-        if (!err && dataRes) {
-          if (dataRes?.data) {
-            console.log('getUser执行了')
-
-            getUser('self')
-            if (fun) {
-              fun(dataRes.data)
-            }
+        if (!err && dataRes?.data) {
+          setUserInfo(dataRes.data)
+          if (fun) {
+            fun(dataRes.data)
           }
         }
       } catch (error) {

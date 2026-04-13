@@ -7,6 +7,7 @@ import MkRender from '@/components/mk-render/index.vue'
 import Comment from './comment.vue'
 // import { debounce } from '@/utils'
 import type { ArticleType } from '@/stores/article/type'
+import { getAvatarUrl } from '@/utils/avatar'
 
 const route = useRoute()
 const article_store = useArticleStore()
@@ -33,27 +34,22 @@ const toFollow = () => {
     is_follow.value = !is_follow.value
   })
 }
-const toPraiseOrStart = (type: 1 | 2) => {
-  console.log('type>', type)
-
+const toPraiseOrStart = (actionType: 1 | 2) => {
   if (!article.value) return
   let { _id, created_by } = article.value
   let form = {
     target_id: _id,
     target_user: created_by,
-    target_type: type,
-    type: type,
+    target_type: 1,
+    type: actionType,
   }
   article_store.togglePraise(form, bool => {
-    if (type == 1) {
+    if (actionType == 1) {
       if (!article.value) return
-
       article.value.is_praise = bool as boolean
       article.value.praises += bool ? 1 : -1
     } else {
       if (article.value === null) return
-      console.log('bool>>', bool)
-
       article.value.is_start = bool as boolean
       if (article.value.stars === undefined) return
       article.value.stars += bool ? 1 : -1
@@ -189,7 +185,10 @@ onMounted(() => {
       <div class="other-panel">
         <div class="user-pan pan" v-if="article">
           <div class="user fx" @click="toUser">
-            <el-avatar :size="48" :src="article.user.avatar">
+            <el-avatar
+              :size="48"
+              :src="getAvatarUrl(article.user.username, article.user.avatar)"
+            >
               <img src="@/assets/avatar.png" />
             </el-avatar>
             <div class="rcolum">

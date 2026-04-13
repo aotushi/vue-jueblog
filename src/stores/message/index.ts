@@ -2,11 +2,10 @@ import { defineStore } from 'pinia'
 import { api } from '@/request/index'
 import { ref } from 'vue'
 import type { Message, comments } from '@/request/path/message'
-// import type { IAnyObj } from '@/request/http'
-import request from '@/request'
 import { ElMessage } from 'element-plus'
 import type { PraiseType } from '@/pages/message/index.vue'
 import type { IAnyObj } from '@/request/http'
+import { useUserStore } from '@/stores'
 
 interface FollowDataType {
   _id: string
@@ -45,6 +44,10 @@ export const useMessageStore = defineStore(
 
     async function getMessage() {
       try {
+        const { user_state } = useUserStore()
+        if (!user_state.user_info || !localStorage.getItem('jueblog_token'))
+          return
+
         const res = await api.messageApi.getMessages()
 
         const [err, data] = res
@@ -66,11 +69,8 @@ export const useMessageStore = defineStore(
       try {
         const res = await api.messageApi.getComments(page)
         const [err, data] = res
-        if (!err) {
-          if (data?.data) {
-            const { data: messageData } = data
-            fun(messageData)
-          }
+        if (!err && data?.data) {
+          fun(data.data as unknown as comments)
         }
       } catch (err) {
         ElMessage.error('获取评论失败' + err)
@@ -83,23 +83,13 @@ export const useMessageStore = defineStore(
       page = 1,
     ) {
       try {
-        const params = { page }
-        const res = await request.get<{
-          meta: { page: number; per_page: number; total: number }
-          data: PraiseType[]
-        }>('/api2/praises/mylist', {
-          ...params,
-        })
+        const res = await api.messageApi.getPraises(page)
         const [err, data] = res
-        if (!err && data) {
-          if (data?.data) {
-            const { data: praiseData } = data
-            console.log('praiseData>', praiseData)
-
-            fun(praiseData)
-          }
+        if (!err && data?.data) {
+          fun(data.data as { meta: IAnyObj; data: PraiseType[] })
+        } else {
+          fun(null)
         }
-        // fun(res)
       } catch (error) {
         fun(null)
         ElMessage.error('获取点赞失败' + error)
@@ -108,16 +98,12 @@ export const useMessageStore = defineStore(
 
     async function getFollows(fun: (res: FollowType | null) => void, page = 1) {
       try {
-        const params = { page }
-        const res = await request.get<FollowType>('/api2/follows/lists', {
-          params,
-        })
+        const res = await api.messageApi.getFollows(page)
         const [err, data] = res
-        if (!err && data) {
-          if (data?.data) {
-            const { data: FollowData } = data
-            fun(FollowData)
-          }
+        if (!err && data?.data) {
+          fun(data.data as unknown as FollowType)
+        } else {
+          fun(null)
         }
       } catch (error) {
         fun(null)

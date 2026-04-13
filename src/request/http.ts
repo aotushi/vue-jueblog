@@ -6,6 +6,7 @@ import axios, {
   AxiosError,
   CanceledError,
 } from 'axios'
+import { ElMessage } from 'element-plus'
 import {
   handleChangeRequestHeader,
   handleRequestHeaderAuth,
@@ -34,9 +35,9 @@ export type TransformFn<T> = (response: IAnyObj) => FcResponse<T>
 
 export const defaultTransform = <T>(data: IAnyObj): FcResponse<T> => {
   return {
-    errno: '',
-    errmsg: '',
-    data: data as T,
+    errno: data.code === 0 ? '' : String(data.code),
+    errmsg: (data.message as string) || '',
+    data: data.data as T,
   }
 }
 
@@ -85,7 +86,15 @@ export default class HttpRequest {
    */
   constructor(
     config?: AxiosRequestConfig,
-    retryConfig: RetryConfig = { retries: 3, retryDelay: 1000 },
+    retryConfig: RetryConfig = {
+      retries: 3,
+      retryDelay: 1000,
+      // 只在无响应（网络断开）时重试，4xx/5xx 直接放弃
+      retryCondition: (error: Error) => {
+        const axiosErr = error as AxiosError
+        return !axiosErr.response
+      },
+    },
   ) {
     this.instance = axios.create({
       timeout: 1000 * 10,
@@ -185,7 +194,7 @@ export default class HttpRequest {
 
         return response
       },
-      (error: AxiosError) => {
+      async (error: AxiosError) => {
         const requestKey = this.generateRequestKey(
           error.config as InternalAxiosRequestConfig,
         )
@@ -200,9 +209,27 @@ export default class HttpRequest {
           return Promise.reject(new Error('Request canceled'))
         }
 
-        // 处理网络错误
+        // 处理 401：统一弹登录框，session 过期时额外给一条提示
+        if (error.response?.status === 401) {
+          const hadToken = !!localStorage.getItem('jueblog_token')
+          handleNetworkError(401) // 清 token
+          if (hadToken) {
+            ElMessage.warning('登录已过期，请重新登录')
+          }
+          const { useUserStore } = await import('@/stores')
+          useUserStore().showLogin()
+          return Promise.reject(error)
+        }
+
+        // 处理其他网络错误
         if (error.response && this.shouldShowErrorMessage(requestKey)) {
-          handleNetworkError(error.response.status)
+          const responseMessage = (error.response.data as IAnyObj)
+            ?.message as string
+          if (responseMessage) {
+            ElMessage.error(responseMessage)
+          } else {
+            handleNetworkError(error.response.status)
+          }
         }
 
         return Promise.reject(error)

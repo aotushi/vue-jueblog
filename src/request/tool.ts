@@ -1,4 +1,3 @@
-import { useUserStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 import { type InternalAxiosRequestConfig } from 'axios'
 
@@ -21,10 +20,9 @@ const handleNetworkError = (errStatus: number) => {
         errMsg = '请求错误'
         break
       case 401:
-        errMsg = '未授权'
+        // 401 由调用方或拦截器处理，此处只清 token
         localStorage.removeItem('jueblog_token')
-        useUserStore().showLogin() //显示登录框
-        break
+        return
       case 403:
         errMsg = '拒绝访问'
         break

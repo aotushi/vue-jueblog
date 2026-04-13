@@ -1,434 +1,239 @@
-# 🚀 仿掘金网站 V2 - 边缘计算全栈架构
+# vue-jueblog
 
-> 基于 Vue3 + TypeScript + Hono + tRPC + Cloudflare D1 的零成本边缘计算博客平台
+> 仿掘金博客社区，Vue 3 全栈项目。
 
-## ✨ V2 版本亮点
+---
 
-### 🔄 架构升级对比
+## 版本链接
 
-| 模块            | V1 (传统架构)             | V2 (边缘计算架构)      | 升级说明                            |
-| --------------- | ------------------------- | ---------------------- | ----------------------------------- |
-| **仓库结构**    | 单仓库 (混合)             | 前后端分离仓库         | 独立开发、独立部署                  |
-| **前端框架**    | Vue 3 + Vite              | Vue 3 + Vite           | 保持不变 ✅                         |
-| **HTTP 客户端** | Axios                     | **tRPC Client**        | 🔄 **需替换** - 类型安全的 RPC 调用 |
-| **状态管理**    | Pinia + REST              | Pinia + tRPC           | 🔄 Store 调用方式升级               |
-| **后端框架**    | Express                   | **Hono**               | 🔄 轻量级，专为 Workers 优化        |
-| **API 设计**    | REST API                  | **tRPC RPC**           | 🔄 函数式调用，端到端类型安全       |
-| **数据库**      | MongoDB + Mongoose        | **Cloudflare D1**      | 🔄 需要数据迁移                     |
-| **部署方式**    | 单一服务器                | **前后端分离部署**     | 🔄 Pages + Workers                  |
-| **Mock 方案**   | Strapi (backend-mockdata) | **MSW**                | 🔄 浏览器级别拦截，更现代           |
-| **开发体验**    | 手动维护接口类型          | **自动类型推断**       | ✨ IDE 智能补全                     |
-| **性能**        | 单点服务器响应            | **300+ 边缘节点**      | ⚡ 延迟降低 50-80%                  |
-| **成本**        | 固定服务器 ($20-50/月)    | **几乎免费** ($0-2/月) | 💰 成本节省 90%+                    |
+| 版本 | 分支                | 在线演示 | 技术栈                       | 状态          |
+| ---- | ------------------- | -------- | ---------------------------- | ------------- |
+| V1   | [v1](../../tree/v1) | 已下线   | Vue 3 + Express + MongoDB    | ✅ 已归档     |
+| V2   | [v2](../../tree/v2) | —        | Vue 3 + Hono + Cloudflare D1 | 🔄 本地测试中 |
 
-## 🎯 技术栈
+> 当前所在分支：**v2**
 
-### 前端
+---
 
-- **Vue 3** - Composition API + `<script setup>`
-- **TypeScript** - 严格类型检查
-- **Vite** - 极速构建工具
-- **Pinia** - 现代状态管理
-- **Element Plus** - UI 组件库
-- **tRPC Client** - 类型安全的 API 调用
-- **MSW** - 现代化 Mock 数据方案
+## 功能特性
 
-### 后端
+- 文章发布与阅读（Markdown 编辑器，支持 GFM / 代码高亮 / Mermaid / 图片缩放）
+- 文章分类、标签筛选
+- 嵌套评论（回复楼层）
+- 点赞 / 收藏（文章 & 沸点）
+- 关注 / 粉丝
+- 消息通知（评论、点赞、关注）
+- 沸点（短内容动态，按圈子分类）
+- 用户主页 & 个人设置
 
-- **Hono** - 高性能 Web 框架 (专为 Cloudflare Workers 优化)
-- **tRPC** - 端到端类型安全的 RPC 框架
-- **Zod** - TypeScript 优先的数据验证
-- **Cloudflare Workers** - 边缘计算平台
+---
 
-### 数据库
-
-- **Cloudflare D1** - 边缘 SQLite 数据库 (已选定) ⭐
-
-## 🚀 核心优势
-
-### 1. 🔒 端到端类型安全
-
-```typescript
-// 后端定义
-const userRouter = router({
-  getUser: publicProcedure
-    .input(z.string())
-    .query(({ input }) => getUserById(input)),
-})
-
-// 前端调用 - 完全类型安全，自动补全
-const user = await trpc.users.getUser.query(userId)
-//    ↑ TypeScript 自动推断 user 的完整类型
-```
-
-### 2. ⚡ 边缘计算性能
-
-- **全球分发**: 300+ 边缘节点，就近响应
-- **冷启动优化**: Hono 框架专为 Serverless 优化
-- **自动缓存**: Cloudflare 智能缓存策略
-
-### 3. 💰 成本效益 (几乎免费！)
-
-- **Cloudflare Workers**: 每月 100,000 请求免费
-- **Cloudflare D1**: 每月 100,000 读取免费
-- **Cloudflare Pages**: 静态托管完全免费
-- **零服务器成本**: 无需维护数据库服务器
-- **估算月成本**: $0-2 (仅超出免费额度时)
-
-### 4. 🛠️ 开发体验
-
-- **智能补全**: IDE 完整的类型提示
-- **自动重构**: 修改后端接口，前端自动更新
-- **错误提前发现**: 编译期类型检查
-
-## 📋 功能模块
-
-### 核心功能
-
-- ✅ **用户系统**: 注册、登录、个人资料
-- ✅ **文章管理**: 创建、编辑、发布、分类
-- ✅ **互动功能**: 点赞、收藏、评论
-- ✅ **沸点系统**: 短内容发布和互动
-- ✅ **消息中心**: 通知、私信管理
-- ✅ **搜索功能**: 全文搜索、标签筛选
-
-### V2 新增特性
-
-- 🆕 **实时更新**: WebSocket 支持
-- 🆕 **离线缓存**: PWA 支持
-- 🆕 **多主题**: 明暗主题切换
-- 🆕 **国际化**: 多语言支持
-- 🆕 **性能监控**: 实时性能分析
-
-## 🏗️ 项目架构
-
-### 整体架构图
+## 技术架构（V2）
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Vue 3 SPA     │───▶│ Cloudflare      │───▶│ Cloudflare D1   │
-│   (Vite + tRPC) │    │ Workers         │    │ (边缘数据库)      │
-│                 │    │ (Hono + tRPC)   │    │ SQLite 存储     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-        │                       │                       │
-        ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Cloudflare      │    │ 300+ 边缘节点   │    │ 自动备份恢复    │
-│ Pages (静态)     │    │ 代码全球分发     │    │ 零维护成本      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-
-🌍 真正的边缘计算架构 - API 和数据都在边缘节点，实现极低延迟访问
+┌────────────────────────────────────────────────────────────┐
+│                    Cloudflare Workers                       │
+│                                                            │
+│  ┌─────────────────────┐   ┌──────────────────────────┐   │
+│  │   Static Assets     │   │   Hono API Server         │   │
+│  │   (Vue 3 SPA dist)  │   │   /api2/*                 │   │
+│  └─────────────────────┘   └──────────┬───────────────┘   │
+│                                        │                   │
+│                              ┌─────────▼──────────┐       │
+│                              │  Cloudflare D1     │       │
+│                              │  (SQLite)          │       │
+│                              └────────────────────┘       │
+└────────────────────────────────────────────────────────────┘
 ```
 
-### 仓库结构 (前后端分离)
+| 层级        | 技术                                                           |
+| ----------- | -------------------------------------------------------------- |
+| 前端框架    | Vue 3 + TypeScript + Vite 6                                    |
+| 状态管理    | Pinia + pinia-plugin-persistedstate                            |
+| 路由        | Vue Router 4                                                   |
+| UI 组件库   | Element Plus 2                                                 |
+| HTTP 客户端 | Axios                                                          |
+| Markdown    | ByteMD（GFM / Highlight / Mermaid / Medium-zoom 插件）         |
+| 后端框架    | Hono 4（运行在 Cloudflare Workers）                            |
+| 认证        | JWT（jose）                                                    |
+| 数据库      | Cloudflare D1（SQLite，Wrangler 管理迁移）                     |
+| 部署        | Cloudflare Workers + Static Assets（单 Worker 同时托管前后端） |
 
-#### 前端仓库 `vue-jueblog-frontend`
+### 开发工具链
+
+| 工具                     | 用途                              |
+| ------------------------ | --------------------------------- |
+| ESLint + Prettier        | 代码规范与格式化                  |
+| Husky + lint-staged      | Git 提交前自动 lint/format        |
+| commitlint + cz-git      | 规范化 Commit 信息                |
+| vue-tsc                  | TypeScript 类型检查               |
+| Wrangler 4               | Cloudflare Workers 本地开发与部署 |
+| vite-plugin-vue-devtools | Vue DevTools 集成                 |
+
+---
+
+## 数据库设计
+
+### 表结构
+
+| 表名        | 说明                                                             |
+| ----------- | ---------------------------------------------------------------- |
+| `users`     | 用户（手机号登录，jue_power/good_num/read_num 统计）             |
+| `articles`  | 文章（支持草稿 status=0 / 已发布 status=1）                      |
+| `shortmsgs` | 沸点（短动态，按 `group_key` 圈子分类）                          |
+| `comments`  | 评论（`type='article'` 或 `'shortmsg'`，支持回复嵌套）           |
+| `praises`   | 点赞/收藏（`target_type`: 1=文章 2=沸点；`type`: 1=点赞 2=收藏） |
+| `follows`   | 关注关系                                                         |
+| `messages`  | 消息通知（评论/点赞/关注）                                       |
+
+### 关键设计说明
+
+- **数组字段**（`tags`, `images`）以 JSON 字符串存储，读取时 `JSON.parse`
+- **点赞/收藏复用同一张表**，通过 `target_type + type` 区分场景
+- **可选认证中间件**（`optionalAuth`）：列表/详情接口无需强制登录，但有 Token 时附加用户个性化数据（`is_praise`, `is_start`）
+- **批量查询点赞状态**，避免列表接口 N+1 查询
+
+---
+
+## 项目结构
 
 ```
-vue-jueblog-frontend/
-├── src/
-│   ├── components/          # Vue 组件
-│   ├── pages/              # 页面组件
-│   ├── stores/             # Pinia 状态管理 (需升级为 tRPC)
-│   ├── utils/              # 工具函数
-│   ├── trpc/               # 🆕 tRPC 客户端配置
-│   └── request/            # ❌ 移除 axios 相关代码
-├── mocks/                  # 🆕 MSW Mock 配置
-├── types/                  # 🆕 共享类型定义
-├── vite.config.ts
-└── package.json
+vue-jueblog/
+├── src/                        # 前端源码
+│   ├── pages/                  # 路由页面
+│   │   ├── Home/               # 首页（文章列表）
+│   │   ├── article/            # 文章详情 / 编写
+│   │   ├── short-msg/          # 沸点列表 / 详情
+│   │   ├── user/               # 用户主页
+│   │   ├── message/            # 消息中心
+│   │   └── setting/            # 个人设置
+│   ├── stores/                 # Pinia Store
+│   ├── components/             # 公共组件
+│   ├── request/                # Axios 封装 & API 路径
+│   ├── router/                 # 路由配置
+│   └── composables/            # 组合式函数
+├── worker/
+│   ├── src/
+│   │   ├── index.ts            # Worker 入口（Hono app）
+│   │   ├── routes/             # API 路由（articles/users/comments/…）
+│   │   └── middleware/         # 认证中间件（auth / optionalAuth）
+│   └── migrations/             # D1 SQL 迁移文件
+├── wrangler.toml               # Cloudflare Workers 配置
+└── vite.config.ts              # Vite 配置（含 /api2 代理）
 ```
 
-#### 后端仓库 `vue-jueblog-backend`
+---
 
-```
-vue-jueblog-backend/
-├── src/
-│   ├── trpc/              # 🆕 tRPC 路由定义
-│   │   ├── users.ts       # 用户相关 procedures
-│   │   ├── articles.ts    # 文章相关 procedures
-│   │   └── router.ts      # 根路由配置
-│   ├── db/                # 🆕 D1 数据库操作
-│   │   ├── schema.sql     # 数据库结构定义
-│   │   └── migrations/    # 迁移文件
-│   ├── middleware/        # 🆕 tRPC 中间件
-│   └── index.ts           # 🆕 Hono 应用入口
-├── migration-tools/       # 🆕 MongoDB → D1 迁移
-├── wrangler.toml          # 🆕 Cloudflare Workers 配置
-└── package.json
-```
+## API 路由
 
-## 🚀 快速开始
+所有接口前缀 `/api2`，需要登录的接口请在请求头携带 `Authorization: Bearer <token>`。
+
+| 方法   | 路径                       | 认证 | 说明                                        |
+| ------ | -------------------------- | ---- | ------------------------------------------- |
+| POST   | /api2/users/create         | —    | 注册                                        |
+| POST   | /api2/users/login          | —    | 登录                                        |
+| GET    | /api2/users/:id            | —    | 用户信息                                    |
+| PUT    | /api2/users/:id            | ✓    | 更新用户资料                                |
+| GET    | /api2/articles             | 可选 | 文章列表（含分类/标签筛选）                 |
+| GET    | /api2/articles/category    | —    | 分类列表                                    |
+| GET    | /api2/articles/:id         | 可选 | 文章详情（含 is_praise 状态）               |
+| POST   | /api2/articles             | ✓    | 创建文章（草稿）                            |
+| PUT    | /api2/articles/:id         | ✓    | 更新文章                                    |
+| PUT    | /api2/articles/:id/publish | ✓    | 发布文章                                    |
+| DELETE | /api2/articles/:id         | ✓    | 删除文章                                    |
+| GET    | /api2/comments/list/:id    | —    | 评论列表（`?type=article\|shortmsg`）       |
+| POST   | /api2/comments             | ✓    | 发表评论                                    |
+| DELETE | /api2/comments/:id         | ✓    | 删除评论                                    |
+| POST   | /api2/praises/toggle       | ✓    | 点赞/收藏切换（返回 `praised`/`cancelled`） |
+| GET    | /api2/follows/toggle       | ✓    | 关注/取消关注                               |
+| GET    | /api2/follows              | —    | 关注/粉丝列表                               |
+| GET    | /api2/messages             | ✓    | 未读消息数                                  |
+| GET    | /api2/messages/comments    | ✓    | 评论消息                                    |
+| GET    | /api2/messages/praises     | ✓    | 点赞消息                                    |
+| GET    | /api2/messages/follows     | ✓    | 关注消息                                    |
+| GET    | /api2/stmsgs/groups        | —    | 沸点圈子分类                                |
+| GET    | /api2/stmsgs               | 可选 | 沸点列表（含 is_praise 状态）               |
+| POST   | /api2/stmsgs               | ✓    | 发布沸点                                    |
+| DELETE | /api2/stmsgs/:id           | ✓    | 删除沸点                                    |
+
+> **可选认证**：标注「可选」的接口匿名可访问，携带有效 Token 时会附加当前用户的点赞/收藏状态。
+
+---
+
+## 本地开发
 
 ### 环境要求
 
-- **Node.js** >= 18
-- **pnpm** >= 8 (推荐)
-- **Cloudflare 账户** (部署用)
+- Node.js 20+
 
-### 本地开发 (前后端分离)
-
-#### 前端开发
+### 启动步骤
 
 ```bash
-# 1. 克隆前端项目
-git clone https://github.com/your-username/vue-jueblog-frontend.git
-cd vue-jueblog-frontend
+# 1. 安装依赖
+npm install
 
-# 2. 安装依赖 (移除 axios，添加 tRPC)
-pnpm install
-pnpm add @trpc/client @trpc/vue-query
-pnpm remove axios  # ❌ 移除 axios
+# 2. 初始化本地 D1 数据库
+npm run db:migrate:local
 
-# 3. 启动开发服务器
-pnpm dev            # http://localhost:5173
+# 3. 构建前端（首次或前端有改动时）
+npm run build
 
-# 4. 启用 Mock 数据 (开发阶段)
-pnpm dev:mock       # 🆕 MSW 自动拦截网络请求
+# 4. 启动 Worker（含前端静态资源 + API）
+npm run worker:dev
+# 访问 http://localhost:8787
 ```
 
-#### 后端开发
+**前端热更新模式**（推荐开发时使用）：
 
 ```bash
-# 1. 克隆后端项目
-git clone https://github.com/your-username/vue-jueblog-backend.git
-cd vue-jueblog-backend
+# 终端 1：启动 Vite 开发服务器（热更新）
+npm run dev           # http://localhost:5173
 
-# 2. 安装依赖
-pnpm install
-pnpm add hono @trpc/server zod
-
-# 3. 配置 D1 本地数据库
-wrangler d1 create vue-jueblog
-wrangler d1 execute vue-jueblog --local --file=src/db/schema.sql
-
-# 4. 启动开发服务器
-pnpm dev            # http://localhost:8787 (wrangler dev)
+# 终端 2：启动 Worker API
+npm run worker:dev    # http://localhost:8787
 ```
 
-### 部署到 Cloudflare (分离部署)
+Vite 已配置 `/api2` 代理到 `:8787`，前端直接访问 `:5173` 即可。
 
-#### 后端部署 (Workers)
+---
+
+## 部署到 Cloudflare
 
 ```bash
-cd vue-jueblog-backend
+# 1. 创建远程 D1 数据库（首次）
+npx wrangler d1 create vue-jueblog-db
+# 将输出的 database_id 填入 wrangler.toml 的 [[d1_databases]] 中
 
-# 1. 登录 Cloudflare
-wrangler login
+# 2. 应用远程数据库迁移
+npm run db:migrate:remote
 
-# 2. 创建生产数据库
-wrangler d1 create vue-jueblog-prod
-wrangler d1 execute vue-jueblog-prod --file=src/db/schema.sql
-
-# 3. 部署到 Workers
-wrangler publish
+# 3. 构建并部署
+npm run build
+npm run worker:deploy
 ```
 
-#### 前端部署 (Pages)
+---
 
-```bash
-cd vue-jueblog-frontend
+## 版本演进
 
-# 1. 构建生产版本
-pnpm build
+| 版本 | 分支 | 技术栈                       | 部署方式           | 说明                                       |
+| ---- | ---- | ---------------------------- | ------------------ | ------------------------------------------ |
+| V1   | v1   | Vue 3 + Express + MongoDB    | 服务器 + Nginx     | 初始版本，传统前后端分离                   |
+| V2   | v2   | Vue 3 + Hono + Cloudflare D1 | Cloudflare Workers | 迁移至无服务器架构，前后端同一 Worker 部署 |
 
-# 2. 部署到 Cloudflare Pages (自动部署)
-# 连接 GitHub 仓库，推送代码即可自动部署
-git push origin main
+### V1 → V2 主要变化
 
-# 或手动部署
-wrangler pages publish dist
-```
+- 后端从 Express 迁移到 **Hono**，运行在 Cloudflare Workers（无服务器，零冷启动）
+- 数据库从 MongoDB 迁移到 **Cloudflare D1**（SQLite，边缘原生支持）
+- 前后端合并为**单个 Worker** 部署，无需独立服务器
 
-## 📚 开发指南
+### MongoDB → D1 关键差异
 
-### API 开发流程
-
-1. **定义后端接口**
-
-```typescript
-// backend/src/trpc/users.ts
-export const userRouter = router({
-  profile: protectedProcedure
-    .input(z.string())
-    .query(async ({ input, ctx }) => {
-      // 直接查询 Cloudflare D1 数据库
-      return await ctx.env.DB.prepare('SELECT * FROM users WHERE id = ?')
-        .bind(input)
-        .first()
-    }),
-})
-```
-
-2. **前端调用升级 (替换 axios)**
-
-```typescript
-// ❌ V1: 使用 axios (需要移除)
-// src/request/path/user.ts
-const getUser = (id: string) => {
-  return http.get(`/api2/users/info/${id}`) // 无类型安全
-}
-
-// ✅ V2: 使用 tRPC Client
-// src/stores/user.ts
-const getUserProfile = async (id: string) => {
-  // 完全类型安全，自动补全，无需手动维护接口类型
-  const profile = await trpc.users.profile.query(id)
-  return profile // TypeScript 自动推断完整类型
-}
-```
-
-### Mock 数据配置升级
-
-```typescript
-// ❌ V1: Strapi backend-mockdata (繁琐)
-// 需要启动单独的 Strapi 服务，配置复杂
-
-// ✅ V2: MSW (现代化)
-// frontend/mocks/handlers.ts
-import { http, HttpResponse } from 'msw'
-
-export const handlers = [
-  // 拦截 tRPC 请求
-  http.post('/trpc/users.login', () => {
-    return HttpResponse.json({
-      result: { data: { token: 'mock-jwt-token', user: { id: '1' } } },
-    })
-  }),
-
-  http.get('/trpc/articles.list', () => {
-    return HttpResponse.json({
-      result: { data: mockArticles },
-    })
-  }),
-]
-
-// 自动启用 (开发环境)
-if (import.meta.env.DEV) {
-  const { worker } = await import('./browser')
-  worker.start()
-}
-```
-
-## 🔧 配置说明
-
-### 环境变量
-
-```bash
-# .env.local
-VITE_API_URL=http://localhost:8787  # 开发环境 API 地址
-VITE_MOCK_ENABLED=true              # 是否启用 Mock
-JWT_SECRET=your-jwt-secret          # JWT 密钥
-
-# Cloudflare Workers 环境变量 (wrangler.toml)
-# DATABASE_URL 不再需要 - 使用 D1 绑定
-```
-
-### Cloudflare Workers 配置
-
-```toml
-# wrangler.toml
-name = "vue-jueblog-api"
-main = "src/index.ts"
-compatibility_date = "2024-01-01"
-
-[vars]
-NODE_ENV = "production"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "vue-jueblog"
-database_id = "your-database-id"
-```
-
-## 📈 性能优化
-
-### 前端优化
-
-- ✅ **代码分割**: 路由级别的懒加载
-- ✅ **Tree Shaking**: 移除未使用代码
-- ✅ **缓存策略**: 长期缓存静态资源
-- ✅ **PWA**: Service Worker 缓存
-
-### 后端优化
-
-- ✅ **边缘缓存**: Cloudflare 自动缓存
-- ✅ **数据库优化**: 连接池 + 查询优化
-- ✅ **压缩传输**: Gzip/Brotli 压缩
-- ✅ **批量请求**: tRPC 自动批处理
-
-## 🧪 测试策略
-
-- **单元测试**: Vitest + Vue Test Utils
-- **API 测试**: tRPC 端到端测试
-- **E2E 测试**: Playwright 集成测试
-- **类型测试**: TypeScript 编译时检查
-- **数据库测试**: D1 本地测试环境
-
-## 📊 数据迁移
-
-### MongoDB → Cloudflare D1 迁移策略
-
-```typescript
-// 数据结构映射示例
-// MongoDB (V1) → D1 (V2)
-interface UserMigration {
-  _id: ObjectId → id: string
-  phone: string → phone: string
-  username: string → username: string
-  createdAt: Date → created_at: string
-}
-```
-
-### 迁移工具
-
-- **导出脚本**: `migration-tools/export-mongo.js`
-- **导入脚本**: `migration-tools/import-d1.js`
-- **数据验证**: 自动对比迁移前后数据一致性
-- **批量处理**: 支持大数据量分批迁移
-
-## 📖 学习资源
-
-- [tRPC 官方文档](https://trpc.io/docs)
-- [Hono 框架指南](https://hono.dev/)
-- [Cloudflare Workers 文档](https://developers.cloudflare.com/workers/)
-- [Vue 3 Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
-- [TypeScript 最佳实践](https://www.typescriptlang.org/docs/)
-
-## 🤝 贡献指南
-
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交改动 (`git commit -m 'Add amazing feature'`)
-4. 推送分支 (`git push origin feature/amazing-feature`)
-5. 提交 Pull Request
-
-## 📝 变更日志
-
-### V2.0.0 (计划中)
-
-- 🎉 全新架构升级
-- ✨ tRPC + Hono 技术栈
-- 🚀 Cloudflare Workers 部署
-- 🔒 端到端类型安全
-- ⚡ 性能提升 300%
-
-### V1.0.0 (当前)
-
-- ✅ Vue3 + Express 基础架构
-- ✅ 核心功能完整实现
-- ✅ MongoDB 数据存储
-- ⚠️ 需要服务器维护，成本较高
-
-## 📄 许可证
-
-[MIT License](LICENSE)
-
-## 🙏 致谢
-
-感谢以下开源项目：
-
-- [Vue.js](https://vuejs.org/) - 渐进式 JavaScript 框架
-- [tRPC](https://trpc.io/) - 端到端类型安全 RPC
-- [Hono](https://hono.dev/) - 轻量级 Web 框架
-- [Cloudflare](https://cloudflare.com/) - 边缘计算平台
+| 特性                    | MongoDB（V1）            | D1 / SQLite（V2）              |
+| ----------------------- | ------------------------ | ------------------------------ |
+| 主键类型                | ObjectId（24位十六进制） | `INTEGER AUTOINCREMENT`        |
+| 数组字段（tags/images） | 原生数组                 | JSON 字符串，读时 `JSON.parse` |
+| 嵌套文档                | 子文档 / populate        | SQL JOIN + GROUP BY            |
+| 复杂查询                | Mongoose aggregation     | 手写 SQL                       |
+| 数据库连接              | TCP（不支持 Workers）    | HTTP API（Workers 原生支持）   |
+| 字段名约定              | `_id`, `author` 对象     | `id` 整数，JOIN 后扁平字段     |

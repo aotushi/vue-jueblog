@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useUserStore, useArticleStore, useShortMsgStore } from '@/stores'
+import { getAvatarUrl } from '@/utils/avatar'
 import { Ticket, UserFilled } from '@element-plus/icons-vue'
 import Articles from '@/pages/article/lists.vue'
 import ShortMsgs from '@/pages/short-msg/lists.vue'
@@ -72,7 +73,10 @@ onMounted(() => {
   <section class="user-page fx">
     <div class="content-panel">
       <div class="basic fx panel" v-if="curuser">
-        <el-avatar :size="90" :src="curuser.avatar">
+        <el-avatar
+          :size="90"
+          :src="getAvatarUrl(curuser.username, curuser.avatar)"
+        >
           <img src="@/assets/avatar.png" />
         </el-avatar>
         <div class="uinfo-wrap">

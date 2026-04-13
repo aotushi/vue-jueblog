@@ -3,7 +3,7 @@
     <div class="title">评论</div>
     <div class="comment-create-box fxt">
       <div class="avatar">
-        <el-avatar :src="user_info?.avatar">
+        <el-avatar :src="getAvatarUrl(user_info?.username, user_info?.avatar)">
           <img src="@/assets/avatar.png" />
         </el-avatar>
       </div>
@@ -47,9 +47,9 @@ import { ElMessage } from 'element-plus'
 import CusComments from '@/components/cus-comment/index.vue'
 import type { CommentType } from '@/stores/comment/type'
 import type { CommentResultType } from '@/stores/comment/type'
-const {
-  user_state: { user_info },
-} = useUserStore()
+import { getAvatarUrl } from '@/utils/avatar'
+const userStore = useUserStore()
+const { user_info } = userStore.user_state
 const loading = ref(false)
 const store = useCommentStore()
 const props = defineProps<{
@@ -66,6 +66,10 @@ const toCreate = (data = {}) => {
   if (!form_data.content) {
     return ElMessage.error('评论内容不可为空')
   }
+  if (!user_info?._id) {
+    userStore.showLogin()
+    return
+  }
   loading.value = true
   form_data.created_by = user_info?._id
   store.createComment(form_data, () => {
@@ -75,9 +79,13 @@ const toCreate = (data = {}) => {
   })
 }
 const getComments = () => {
-  store.getComments(props.msg_id, res => {
-    comments.value = res as unknown as CommentResultType[]
-  })
+  store.getComments(
+    props.msg_id,
+    res => {
+      comments.value = res as unknown as CommentResultType[]
+    },
+    'shortmsg',
+  )
 }
 
 const action_load = computed(() => store.comment_info.action_load)
@@ -88,7 +96,7 @@ onMounted(() => {
   form.value = {
     source_id: props.msg_id,
     source_type: 2,
-    type: 'source',
+    type: 'shortmsg',
     content: '',
     target_user: props.user_id,
   }

@@ -23,6 +23,7 @@ const routes = [
     path: '/operate/:tag',
     name: 'operate',
     component: () => import('@/pages/article/operate.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/user/:id',
@@ -33,6 +34,7 @@ const routes = [
     path: '/setting/:tag',
     name: 'setting',
     component: () => import('@/pages/setting/index.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/mobile',

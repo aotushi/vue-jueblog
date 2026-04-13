@@ -13,16 +13,43 @@ export const useCommentStore = defineStore(
     })
 
     // 评论列表
-
-    async function getComments(id: string, fun: (data: unknown) => void) {
+    async function getComments(
+      id: string,
+      fun: (data: unknown) => void,
+      type = 'article',
+    ) {
       try {
-        const res = await api.getComments(id)
+        const res = await api.getComments(id, type)
         const [err, data] = res
         if (!err && data) {
           if (data?.data) {
             const { data: commentData } = data
+            const normalize = (r: Record<string, unknown>) => ({
+              ...r,
+              _id: String(r.id),
+              created_by: {
+                ...((r.author as Record<string, unknown>) ?? {}),
+                _id: String((r.author as Record<string, unknown>)?.id ?? ''),
+              },
+              replies: ((r.children as Record<string, unknown>[]) ?? []).map(
+                (c: Record<string, unknown>) => ({
+                  ...c,
+                  _id: String(c.id),
+                  created_by: {
+                    ...((c.author as Record<string, unknown>) ?? {}),
+                    _id: String(
+                      (c.author as Record<string, unknown>)?.id ?? '',
+                    ),
+                  },
+                }),
+              ),
+            })
             if (fun) {
-              fun(commentData)
+              fun(
+                (commentData as unknown as Record<string, unknown>[]).map(
+                  normalize,
+                ),
+              )
             }
           }
         }

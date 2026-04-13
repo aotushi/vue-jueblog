@@ -19,19 +19,19 @@ const getMessages = <T = Message>(params?: IAnyObj): ApiResponse<T> => {
 
 const getComments = <T = comments>(page = 1): ApiResponse<T> => {
   const params = { page }
-  return http.get<T>('/api2/comments/mylist', params)
+  return http.get<T>('/api2/messages/comments', params)
 }
 
 // getPraises
 const getPraises = <T = IAnyObj>(page = 1): ApiResponse<T> => {
   const params = { page }
-  return http.get('/api2/praises/mylist', params)
+  return http.get('/api2/messages/praises', params)
 }
 
 // getFollows
 const getFollows = <T = IAnyObj>(page = 1): ApiResponse<T> => {
   const params = { page }
-  return http.get('/api2/follows/lists', params)
+  return http.get('/api2/messages/follows', params)
 }
 
 export const messageApi = { getMessages, getComments, getPraises, getFollows }

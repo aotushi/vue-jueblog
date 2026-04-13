@@ -3,8 +3,11 @@ import type { ApiResponse, IAnyObj } from '../http'
 import type { CommentType } from '@/stores/comment/type.d.ts'
 
 // 评论列表
-export const getComments = <T = IAnyObj>(id: string): ApiResponse<T> => {
-  return http.get<T>('/api2/comments/list/' + id)
+export const getComments = <T = IAnyObj>(
+  id: string,
+  type = 'article',
+): ApiResponse<T> => {
+  return http.get<T>('/api2/comments/list/' + id, { type })
 }
 
 // 创建评论
