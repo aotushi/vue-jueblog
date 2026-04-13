@@ -3,7 +3,7 @@
     <div class="title">评论</div>
     <div class="comment-create-box fxt">
       <div class="avatar">
-        <el-avatar :src="user_info?.avatar">
+        <el-avatar :src="getAvatarUrl(user_info?.username, user_info?.avatar)">
           <img src="@/assets/avatar.png" />
         </el-avatar>
       </div>
@@ -42,14 +42,14 @@ import { ElMessage } from 'element-plus'
 import CusComments from '@/components/cus-comment/index.vue'
 import type { IAnyObj } from '@/request/http'
 import type { CommentResultType } from '@/stores/comment/type'
+import { getAvatarUrl } from '@/utils/avatar'
 export interface CommentType {
   [index: string]: unknown
 }
 // interface form_data extends CommentType {}
 
-const {
-  user_state: { user_info },
-} = useUserStore()
+const userStore = useUserStore()
+const { user_info } = userStore.user_state
 const loading = ref(false)
 const comment_store = useCommentStore()
 const props = defineProps<{
@@ -65,6 +65,10 @@ const toCreate = (data = {} as Partial<CommentType>) => {
   let form_data: Partial<CommentType> = { ...form.value, ...data }
   if (!form_data.content) {
     return ElMessage.error('评论内容不可为空')
+  }
+  if (!user_info._id) {
+    userStore.showLogin()
+    return
   }
   loading.value = true
   form_data.created_by = user_info._id

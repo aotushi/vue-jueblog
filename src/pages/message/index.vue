@@ -3,6 +3,7 @@ import { useMessageStore, useUserStore } from '@/stores'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getTimer, listener } from '@/utils'
+import { getAvatarUrl } from '@/utils/avatar'
 const route = useRoute()
 const router = useRouter()
 const msgStore = useMessageStore()
@@ -19,6 +20,7 @@ type CommentType = {
   source_id: string
   user: {
     username: string
+    avatar?: string
   }
   article: {
     title: string
@@ -171,7 +173,10 @@ onMounted(() => {
     <div class="msgs-box">
       <div class="msgs-list" v-if="type == '1'">
         <div v-for="item in comments" class="msg-item fxt" :key="item._id">
-          <el-avatar :size="45">
+          <el-avatar
+            :size="45"
+            :src="getAvatarUrl(item.user.username, item.user.avatar)"
+          >
             <img src="@/assets/avatar.png" />
           </el-avatar>
           <div class="msg-infos">
@@ -211,7 +216,10 @@ onMounted(() => {
           class="msg-item border fxt"
           :key="item._id"
         >
-          <el-avatar :size="45">
+          <el-avatar
+            :size="45"
+            :src="getAvatarUrl(item.user.username, item.user.avatar)"
+          >
             <img src="@/assets/avatar.png" />
           </el-avatar>
           <div class="msg-infos">
@@ -250,7 +258,10 @@ onMounted(() => {
           class="msg-item border fxt"
           :key="item._id"
         >
-          <el-avatar :size="45">
+          <el-avatar
+            :size="45"
+            :src="getAvatarUrl(item.fans_info.username, item.fans_info.avatar)"
+          >
             <img src="@/assets/avatar.png" />
           </el-avatar>
           <div class="msg-infos">

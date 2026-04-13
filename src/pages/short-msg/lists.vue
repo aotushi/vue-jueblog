@@ -8,6 +8,7 @@ import Comment from './comment.vue'
 // import type { CommentType } from '@/stores/comment/type'
 import type { ShortMsgType } from '@/stores/short-msg/type.d.ts'
 import type { IAnyObj } from '@/request/http'
+import { getAvatarUrl } from '@/utils/avatar'
 
 // const loading = ref(false)
 const act_id = ref('')
@@ -71,7 +72,10 @@ const getComments = (msg_id: string) => {
     <div class="msgs-item" v-for="item in props.shortmsgs" :key="item._id">
       <div class="pad-wrap">
         <div class="user-meta fx">
-          <el-avatar :size="48" :src="item.user.avatar">
+          <el-avatar
+            :size="48"
+            :src="getAvatarUrl(item.user.username, item.user.avatar)"
+          >
             <img src="@/assets/avatar.png" />
           </el-avatar>
           <div class="desc-area">

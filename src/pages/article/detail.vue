@@ -7,6 +7,7 @@ import MkRender from '@/components/mk-render/index.vue'
 import Comment from './comment.vue'
 // import { debounce } from '@/utils'
 import type { ArticleType } from '@/stores/article/type'
+import { getAvatarUrl } from '@/utils/avatar'
 
 const route = useRoute()
 const article_store = useArticleStore()
@@ -184,7 +185,10 @@ onMounted(() => {
       <div class="other-panel">
         <div class="user-pan pan" v-if="article">
           <div class="user fx" @click="toUser">
-            <el-avatar :size="48" :src="article.user.avatar">
+            <el-avatar
+              :size="48"
+              :src="getAvatarUrl(article.user.username, article.user.avatar)"
+            >
               <img src="@/assets/avatar.png" />
             </el-avatar>
             <div class="rcolum">

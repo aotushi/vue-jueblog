@@ -1,6 +1,19 @@
 # vue-jueblog
 
-仿掘金博客社区，Vue 3 全栈项目（当前版本：**v3**）。
+> 仿掘金博客社区，Vue 3 全栈项目。
+
+---
+
+## 版本链接
+
+| 版本 | 分支                | 在线演示 | 技术栈                       | 状态          |
+| ---- | ------------------- | -------- | ---------------------------- | ------------- |
+| V1   | [v1](../../tree/v1) | 已下线   | Vue 3 + Express + MongoDB    | ✅ 已归档     |
+| V2   | [v2](../../tree/v2) | —        | Vue 3 + Hono + Cloudflare D1 | 🔄 本地测试中 |
+
+> 当前所在分支：**v2**
+
+---
 
 ## 功能特性
 
@@ -15,7 +28,7 @@
 
 ---
 
-## 技术架构（v3）
+## 技术架构（V2）
 
 ```
 ┌────────────────────────────────────────────────────────────┐
@@ -201,25 +214,22 @@ npm run worker:deploy
 
 ---
 
-## 版本历史
+## 版本演进
 
-| 版本 | 技术栈                       | 部署方式           |
-| ---- | ---------------------------- | ------------------ |
-| v1   | Vue 2 + Express + MongoDB    | 服务器 + Nginx     |
-| v2   | Vue 3 + Express + MongoDB    | Docker + Nginx     |
-| v3   | Vue 3 + Hono + Cloudflare D1 | Cloudflare Workers |
+| 版本 | 分支 | 技术栈                       | 部署方式           | 说明                                       |
+| ---- | ---- | ---------------------------- | ------------------ | ------------------------------------------ |
+| V1   | v1   | Vue 3 + Express + MongoDB    | 服务器 + Nginx     | 初始版本，传统前后端分离                   |
+| V2   | v2   | Vue 3 + Hono + Cloudflare D1 | Cloudflare Workers | 迁移至无服务器架构，前后端同一 Worker 部署 |
 
-v3 的主要变化：
+### V1 → V2 主要变化
 
-- 后端从 Express 迁移到 Hono，运行在 Cloudflare Workers（无服务器）
-- 数据库从 MongoDB 迁移到 Cloudflare D1（SQLite）
-- 前后端合并为单个 Worker 部署，无需独立服务器
+- 后端从 Express 迁移到 **Hono**，运行在 Cloudflare Workers（无服务器，零冷启动）
+- 数据库从 MongoDB 迁移到 **Cloudflare D1**（SQLite，边缘原生支持）
+- 前后端合并为**单个 Worker** 部署，无需独立服务器
 
----
+### MongoDB → D1 关键差异
 
-## MongoDB → D1 关键差异
-
-| 特性                    | MongoDB（v1/v2）         | D1 / SQLite（v3）              |
+| 特性                    | MongoDB（V1）            | D1 / SQLite（V2）              |
 | ----------------------- | ------------------------ | ------------------------------ |
 | 主键类型                | ObjectId（24位十六进制） | `INTEGER AUTOINCREMENT`        |
 | 数组字段（tags/images） | 原生数组                 | JSON 字符串，读时 `JSON.parse` |

@@ -86,7 +86,7 @@ export const useUserStore = defineStore(
         }
 
         if (resData?.data) {
-          const data = resData.data as Record<string, unknown>
+          const data = resData.data as unknown as Record<string, unknown>
           if (data.token) {
             localStorage.setItem('jueblog_token', data.token as string)
             user_state.value.user_info = {
@@ -112,7 +112,7 @@ export const useUserStore = defineStore(
           fun(400)
           return
         }
-        if (res?.data && (res.data as Record<string, unknown>).id) {
+        if (res?.data && (res.data as unknown as Record<string, unknown>).id) {
           // 注册成功，自动登录
           ElMessage.success('注册成功')
           await login(form, fun)
@@ -156,7 +156,10 @@ export const useUserStore = defineStore(
           if (data?.data) {
             const { data: followData } = data
             if (fun) {
-              fun((followData as { followed: boolean }).followed ?? false)
+              fun(
+                (followData as unknown as { followed: boolean }).followed ??
+                  false,
+              )
             }
           }
         }
@@ -194,7 +197,10 @@ export const useUserStore = defineStore(
       try {
         const resolvedId = id === 'self' ? user_state.value.user_info?._id : id
         if (!resolvedId) return
-        const res = await request.put('/api2/users/update/' + resolvedId, data)
+        const res = await request.put<UserType>(
+          '/api2/users/update/' + resolvedId,
+          data,
+        )
         const [err, dataRes] = res
         if (!err && dataRes?.data) {
           setUserInfo(dataRes.data)

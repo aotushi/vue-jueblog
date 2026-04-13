@@ -49,8 +49,8 @@ const visible = ref(false)
 const loading = ref(false)
 const need_register = ref(false)
 const form = ref({
-  phone: '',
-  password: '',
+  phone: '13800000001',
+  password: '123456',
 })
 const router = useRouter()
 

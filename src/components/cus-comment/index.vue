@@ -5,7 +5,12 @@
       :key="comment._id"
       class="par-comment fxt"
     >
-      <el-avatar :size="36" :src="comment.created_by?.avatar">
+      <el-avatar
+        :size="36"
+        :src="
+          getAvatarUrl(comment.created_by?.username, comment.created_by?.avatar)
+        "
+      >
         <img src="@/assets/avatar.png" />
       </el-avatar>
       <div class="ctx-wrap">
@@ -25,7 +30,12 @@
           :key="item._id"
           class="repliy-item fxt"
         >
-          <el-avatar :size="28" :src="item.created_by.avatar">
+          <el-avatar
+            :size="28"
+            :src="
+              getAvatarUrl(item.created_by.username, item.created_by.avatar)
+            "
+          >
             <img src="@/assets/avatar.png" />
           </el-avatar>
           <div class="ctx-wrap">
@@ -55,6 +65,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import Replay from '@/components/cus-comment/replay.vue'
+import { getAvatarUrl } from '@/utils/avatar'
 import type {
   CommentResultType,
   CommentType,

@@ -12,12 +12,15 @@
       popper-class="header-user-popover"
     >
       <template #reference>
-        <el-avatar :src="user_info.avatar">
+        <el-avatar :src="getAvatarUrl(user_info.username, user_info.avatar)">
           <img src="@/assets/avatar.png" />
         </el-avatar>
       </template>
       <div class="user-wrap fx">
-        <el-avatar :size="48" :src="user_info.avatar">
+        <el-avatar
+          :size="48"
+          :src="getAvatarUrl(user_info.username, user_info.avatar)"
+        >
           <img src="@/assets/avatar.png" />
         </el-avatar>
         <router-link :to="'/user/' + user_info._id">
@@ -62,6 +65,7 @@ import { RouterLink } from 'vue-router'
 import { useUserStore } from '@/stores'
 import router from '@/router'
 import { cusConfirm } from '@/utils'
+import { getAvatarUrl } from '@/utils/avatar'
 
 const {
   user_state: { user_info },
