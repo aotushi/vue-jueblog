@@ -2,6 +2,7 @@ name = "vue-jueblog"
 main = "worker/src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
+account_id = "eff602d8715ddb9bcf1b4ba8b2ca0788"
 
 [assets]
 directory = "./dist"
@@ -10,5 +11,5 @@ not_found_handling = "single-page-application"
 [[d1_databases]]
 binding = "DB"
 database_name = "vue-jueblog-db"
-database_id = "local"
+database_id = "d4857bf5-d21a-4952-b64a-fd70d34c315d"
 migrations_dir = "worker/migrations"

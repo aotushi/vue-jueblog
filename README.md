@@ -199,18 +199,77 @@ Vite 已配置 `/api2` 代理到 `:8787`，前端直接访问 `:5173` 即可。
 
 ## 部署到 Cloudflare
 
-```bash
-# 1. 创建远程 D1 数据库（首次）
-npx wrangler d1 create vue-jueblog-db
-# 将输出的 database_id 填入 wrangler.toml 的 [[d1_databases]] 中
+### 前置条件
 
-# 2. 应用远程数据库迁移
+在 `wrangler.toml` 顶部填入账号信息：
+
+```toml
+account_id = "<your_account_id>"
+```
+
+通过环境变量传入 API Token（不要写入文件，避免泄露）：
+
+```bash
+export CLOUDFLARE_API_TOKEN=<your_api_token>
+```
+
+### 首次部署
+
+```bash
+# 1. 创建远程 D1 数据库
+npx wrangler d1 create vue-jueblog-db
+# 将输出的 database_id 填入 wrangler.toml [[d1_databases]] 的 database_id 字段
+
+# 2. 对远程数据库执行迁移（建表）
 npm run db:migrate:remote
 
-# 3. 构建并部署
+# 3. 构建前端 + 部署 Worker
 npm run build
 npm run worker:deploy
 ```
+
+### 迁移本地数据到远程 D1
+
+适用于将本地开发数据同步到生产环境。
+
+```bash
+# 1. 用 Python 将本地 SQLite 导出为纯 INSERT SQL
+#    （避免 sqlite3 CLI 的 unistr() 兼容问题）
+python -c "
+import sqlite3
+
+DB = '.wrangler/state/v3/d1/miniflare-D1DatabaseObject/<db-file>.sqlite'
+TABLES = ['users', 'articles', 'shortmsgs', 'comments', 'follows', 'praises', 'messages']
+OUT = 'data_clean.sql'
+
+conn = sqlite3.connect(DB)
+lines = []
+for table in TABLES:
+    rows = conn.execute('SELECT * FROM ' + table).fetchall()
+    for row in rows:
+        vals = []
+        for v in row:
+            if v is None: vals.append('NULL')
+            elif isinstance(v, int): vals.append(str(v))
+            else:
+                escaped = str(v).replace(chr(39), chr(39)+chr(39))
+                vals.append(chr(39)+escaped+chr(39))
+        lines.append('INSERT INTO ' + table + ' VALUES(' + ','.join(vals) + ');')
+conn.close()
+with open(OUT, 'w', encoding='utf-8') as f:
+    f.write('\n'.join(lines))
+print('Written', len(lines), 'rows')
+"
+
+# 2. 导入到远程 D1
+npx wrangler d1 execute vue-jueblog-db --remote --file=data_clean.sql
+
+# 3. 清理临时文件
+rm data_clean.sql
+```
+
+> **注意**：本地 SQLite 文件路径中的 `<db-file>` 是 wrangler 自动生成的哈希文件名，
+> 位于 `.wrangler/state/v3/d1/miniflare-D1DatabaseObject/` 目录下。
 
 ---
 
