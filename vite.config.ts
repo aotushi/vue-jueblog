@@ -17,9 +17,12 @@ export default defineConfig({
     outDir: 'dist', // 确保输出目录正确
   },
   server: {
+    host: '127.0.0.1',
+    port: 5174,
+    strictPort: true,
     proxy: {
       '/api2': {
-        target: 'http://localhost:8787',
+        target: 'http://127.0.0.1:8788',
         changeOrigin: true,
       },
     },

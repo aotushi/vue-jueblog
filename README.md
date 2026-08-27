@@ -172,28 +172,33 @@ vue-jueblog/
 # 1. 安装依赖
 npm install
 
-# 2. 初始化本地 D1 数据库
-npm run db:migrate:local
-
-# 3. 构建前端（首次或前端有改动时）
+# 2. 构建前端（首次或前端有改动时）
 npm run build
 
-# 4. 启动 Worker（含前端静态资源 + API）
+# 3. 启动 Worker（自动初始化本地 D1，含前端静态资源 + API）
 npm run worker:dev
-# 访问 http://localhost:8787
+# 访问 http://127.0.0.1:8788
 ```
 
 **前端热更新模式**（推荐开发时使用）：
 
 ```bash
-# 终端 1：启动 Vite 开发服务器（热更新）
-npm run dev           # http://localhost:5173
-
-# 终端 2：启动 Worker API
-npm run worker:dev    # http://localhost:8787
+# 同时启动 Vite 和 Worker；Worker 启动前会自动初始化本地 D1
+npm run dev:all
+# 访问 http://127.0.0.1:5174
 ```
 
-Vite 已配置 `/api2` 代理到 `:8787`，前端直接访问 `:5173` 即可。
+也可以分别启动：
+
+```bash
+# 终端 1：启动 Vite 开发服务器（热更新）
+npm run dev           # http://127.0.0.1:5174
+
+# 终端 2：启动 Worker API
+npm run worker:dev    # http://127.0.0.1:8788
+```
+
+Vite 已配置 `/api2` 代理到 `127.0.0.1:8788`。两个服务使用固定端口，端口被占用时会明确报错，避免请求静默进入其他本地项目。
 
 ---
 

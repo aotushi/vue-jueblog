@@ -112,7 +112,7 @@ onMounted(() => {
       actd.value = (rdirs[0] as { top: number; key: string })?.key || ''
       directs.value = rdirs as { top: number; key: string }[]
     })
-    if (user_store.user_state.user_info) {
+    if (localStorage.getItem('jueblog_token')) {
       user_store.checkFollow(data.created_by, res => {
         is_follow.value = res as boolean
       })
