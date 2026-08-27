@@ -13,6 +13,7 @@
     "lint:lint-staged": "lint-staged",
     "worker:dev": "wrangler dev",
     "worker:deploy": "npm run build && wrangler deploy",
+    "test:worker-routing": "npm run build && node scripts/smoke-worker-routing.mjs",
     "db:migrate:local": "wrangler d1 migrations apply vue-jueblog-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply vue-jueblog-db --remote"
   },

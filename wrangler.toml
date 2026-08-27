@@ -7,6 +7,7 @@ account_id = "eff602d8715ddb9bcf1b4ba8b2ca0788"
 [assets]
 directory = "./dist"
 not_found_handling = "single-page-application"
+run_worker_first = ["/api2/*"]
 
 [[d1_databases]]
 binding = "DB"
