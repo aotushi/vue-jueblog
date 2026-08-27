@@ -6,12 +6,15 @@
 
 ## 版本链接
 
-| 版本 | 分支                | 在线演示 | 技术栈                       | 状态          |
-| ---- | ------------------- | -------- | ---------------------------- | ------------- |
-| V1   | [v1](../../tree/v1) | 已下线   | Vue 3 + Express + MongoDB    | ✅ 已归档     |
-| V2   | [v2](../../tree/v2) | —        | Vue 3 + Hono + Cloudflare D1 | 🔄 本地测试中 |
+| 版本 | 分支                | 在线演示                                            | 核心方案                            | 状态            |
+| ---- | ------------------- | --------------------------------------------------- | ----------------------------------- | --------------- |
+| V1   | [v1](../../tree/v1) | 已下线                                              | Express + MongoDB                   | ✅ 已归档       |
+| V2   | [v2](../../tree/v2) | —                                                   | Hono + tRPC + Cloudflare            | 🧪 类型安全方案 |
+| V3   | [v3](../../tree/v3) | [juejin-blog.9shi.cc](https://juejin-blog.9shi.cc/) | Hono REST + D1 原生 SQL + 单 Worker | 🚧 当前实现     |
 
-> 当前所在分支：**v2**
+> 当前所在分支：**v3**
+>
+> V2 与 V3 是两种可比较的 Cloudflare 实现方案，不是简单的前后版本替换：V2 探索 tRPC 端到端类型安全；V3 保留 REST 接口，由 Worker 通过 D1 binding 直接执行原生 SQL。
 
 ---
 
@@ -28,7 +31,7 @@
 
 ---
 
-## 技术架构（V2）
+## 技术架构（V3）
 
 ```
 ┌────────────────────────────────────────────────────────────┐
@@ -54,9 +57,9 @@
 | UI 组件库   | Element Plus 2                                                 |
 | HTTP 客户端 | Axios                                                          |
 | Markdown    | ByteMD（GFM / Highlight / Mermaid / Medium-zoom 插件）         |
-| 后端框架    | Hono 4（运行在 Cloudflare Workers）                            |
+| API 形式    | Hono 4 REST API（`/api2/*`）                                   |
 | 认证        | JWT（jose）                                                    |
-| 数据库      | Cloudflare D1（SQLite，Wrangler 管理迁移）                     |
+| 数据库      | Cloudflare D1（原生 binding + raw SQL，Wrangler 管理迁移）     |
 | 部署        | Cloudflare Workers + Static Assets（单 Worker 同时托管前后端） |
 
 ### 开发工具链
@@ -92,6 +95,8 @@
 - **点赞/收藏复用同一张表**，通过 `target_type + type` 区分场景
 - **可选认证中间件**（`optionalAuth`）：列表/详情接口无需强制登录，但有 Token 时附加用户个性化数据（`is_praise`, `is_start`）
 - **批量查询点赞状态**，避免列表接口 N+1 查询
+- **数据库访问方式**：Worker 路由通过 `env.DB.prepare(...)` 直接执行 SQL，不引入 ORM 或 tRPC 服务层
+- **安全边界**：浏览器只访问 `/api2/*`，不会直接连接 D1；“直接操作数据库”指 Worker 使用原生 D1 binding
 
 ---
 
@@ -199,6 +204,8 @@ Vite 已配置 `/api2` 代理到 `:8787`，前端直接访问 `:5173` 即可。
 
 ## 部署到 Cloudflare
 
+生产站点对应本 `v3` 分支；使用 Git 自动部署时，应将生产分支设置为 `v3`。
+
 ```bash
 # 1. 创建远程 D1 数据库（首次）
 npx wrangler d1 create vue-jueblog-db
@@ -214,26 +221,37 @@ npm run worker:deploy
 
 ---
 
-## 版本演进
+## 版本与方案
 
-| 版本 | 分支 | 技术栈                       | 部署方式           | 说明                                       |
-| ---- | ---- | ---------------------------- | ------------------ | ------------------------------------------ |
-| V1   | v1   | Vue 3 + Express + MongoDB    | 服务器 + Nginx     | 初始版本，传统前后端分离                   |
-| V2   | v2   | Vue 3 + Hono + Cloudflare D1 | Cloudflare Workers | 迁移至无服务器架构，前后端同一 Worker 部署 |
+| 版本 | 分支 | API / 数据访问方式                | 部署方式           | 定位                                       |
+| ---- | ---- | --------------------------------- | ------------------ | ------------------------------------------ |
+| V1   | v1   | Express REST + Mongoose           | 服务器 + Nginx     | 初始版本，传统前后端分离                   |
+| V2   | v2   | Hono + tRPC，通过服务层访问数据库 | Cloudflare Workers | 端到端类型安全的 RPC 方案                  |
+| V3   | v3   | Hono REST + D1 binding + raw SQL  | Cloudflare Workers | 更直接、依赖更少的单 Worker 实现（本分支） |
 
-### V1 → V2 主要变化
+### V2 与 V3 的区别
 
-- 后端从 Express 迁移到 **Hono**，运行在 Cloudflare Workers（无服务器，零冷启动）
-- 数据库从 MongoDB 迁移到 **Cloudflare D1**（SQLite，边缘原生支持）
-- 前后端合并为**单个 Worker** 部署，无需独立服务器
+| 对比项   | V2：tRPC 方案                        | V3：D1 原生方案                         |
+| -------- | ------------------------------------ | --------------------------------------- |
+| API 风格 | tRPC procedure                       | REST `/api2/*`                          |
+| 类型共享 | 前后端共享 Router 类型               | 请求与响应类型分别维护                  |
+| 数据访问 | 通过 tRPC 服务层封装                 | Worker 路由直接使用 D1 binding 执行 SQL |
+| 优点     | 端到端类型安全、调用体验统一         | 架构简单、依赖少、兼容现有 Axios 调用   |
+| 取舍     | 客户端与服务端耦合更强，需要迁移调用 | 需要自行维护接口契约和输入校验          |
+
+### V1 → V3 主要变化
+
+- 后端从 Express 迁移到 **Hono**，运行在 Cloudflare Workers
+- 数据库从 MongoDB 迁移到 **Cloudflare D1**，使用原生 binding 和 SQL
+- Vue 静态资源与 REST API 合并到**单个 Worker** 部署
 
 ### MongoDB → D1 关键差异
 
-| 特性                    | MongoDB（V1）            | D1 / SQLite（V2）              |
+| 特性                    | MongoDB（V1）            | D1 / SQLite（V3）              |
 | ----------------------- | ------------------------ | ------------------------------ |
 | 主键类型                | ObjectId（24位十六进制） | `INTEGER AUTOINCREMENT`        |
 | 数组字段（tags/images） | 原生数组                 | JSON 字符串，读时 `JSON.parse` |
 | 嵌套文档                | 子文档 / populate        | SQL JOIN + GROUP BY            |
 | 复杂查询                | Mongoose aggregation     | 手写 SQL                       |
-| 数据库连接              | TCP（不支持 Workers）    | HTTP API（Workers 原生支持）   |
+| 数据库连接              | TCP（不支持 Workers）    | D1 binding（Workers 原生支持） |
 | 字段名约定              | `_id`, `author` 对象     | `id` 整数，JOIN 后扁平字段     |
